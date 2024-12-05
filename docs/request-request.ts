@@ -1,5 +1,8 @@
 // import fetch from 'cross-fetch'
-import { RequestBodyType, RequestFunctionParams } from 'yapi-to-typescript'
+import {
+  RequestBodyType,
+  RequestFunctionParams,
+} from 'yapi-apifox-to-typescript'
 
 declare const wx: any
 declare const qq: any

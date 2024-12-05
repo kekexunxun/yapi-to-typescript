@@ -1,25 +1,26 @@
 {
-  "name": "yapi-to-typescript",
-  "version": "3.38.0",
-  "description": "根据 YApi 的接口定义生成 TypeScript/JavaScript 的接口类型及其请求函数代码。",
+  "name": "yapi-apifox-to-typescript",
+  "version": "1.0.0",
+  "description": "根据 YApi 或 Apifox 的接口定义生成 TypeScript/JavaScript 的接口类型及其请求函数代码。",
   "keywords": [
     "yapi",
+    "apifox",
     "codegen",
     "typescript"
   ],
-  "homepage": "https://github.com/fjc0k/yapi-to-typescript",
+  "homepage": "https://github.com/kekexunxun/yapi-to-typescript",
   "bugs": {
-    "url": "https://github.com/fjc0k/yapi-to-typescript/issues"
+    "url": "https://github.com/kekexunxun/yapi-to-typescript/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:fjc0k/yapi-to-typescript.git"
+    "url": "git@github.com:kekexunxun/yapi-to-typescript.git"
   },
   "license": "MIT",
   "author": {
-    "name": "Jay Fong",
-    "email": "fjc0kb@gmail.com",
-    "url": "https://github.com/fjc0k"
+    "name": "Robin",
+    "email": "liubingwei318@gmail.com",
+    "url": "https://github.com/kekexunxun"
   },
   "sideEffects": false,
   "main": "lib/cjs/index.js",
@@ -36,12 +37,9 @@
     "docs": "npm run docs:build && gh-pages --dist docs/dist --dest handbook",
     "docs:build": "dumi build",
     "docs:dev": "dumi dev",
-    "release": "yarn testOnly && standard-version -a && yarn build && yarn docs && git push --follow-tags origin master && npm publish",
-    "releaseBeta": "yarn testOnly && standard-version -a --release-as patch --prerelease beta && yarn build && git push --follow-tags origin master && npm publish --tag next",
-    "test": "jest --coverage",
-    "testApi": "ts-node -T src/cli.ts",
-    "testOnly": "jest",
-    "testUpdateSnapshot": "jest --coverage -u"
+    "release": "standard-version -a && yarn build && git push --follow-tags origin master && npm publish",
+    "releaseBeta": "standard-version -a --release-as patch --prerelease beta && yarn build && git push --follow-tags origin master && npm publish --tag next",
+    "testApi": "ts-node -T src/cli.ts"
   },
   "husky": {
     "hooks": {
@@ -92,19 +90,15 @@
     "@types/swagger-schema-official": "^2.0.21",
     "@types/to-json-schema": "^0.2.0",
     "@types/yargs": "^16.0.1",
-    "codecov": "^3",
+    "axios": "^1.7.8",
     "dumi": "^1.1.10",
     "eslint": "^7",
     "gh-pages": "^2.0.1",
     "haoma": "^2.31.0",
     "husky": "^4",
-    "jest": "^26",
     "lint-staged": "^10",
-    "notify-dingtalk": "^1.2.0",
     "openapi-types": "^7.0.1",
-    "shx": "^0.3.2",
     "standard-version": "^9.3.2",
-    "tempy": "^0.3.0",
     "typedoc": "^0.14.2",
     "typescript-snapshots-plugin": "^1.7.0"
   },

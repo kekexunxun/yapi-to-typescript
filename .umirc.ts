@@ -2,7 +2,7 @@ import { defineConfig } from 'dumi'
 
 export default defineConfig({
   title: 'YTT',
-  description: '一个 YApi 代码生成工具',
+  description: '一个 YApi 和 Apifox 代码生成工具',
   favicon:
     'https://cdn.jsdelivr.net/gh/fjc0k/yapi-to-typescript/assets/logo.png',
   logo: 'https://cdn.jsdelivr.net/gh/fjc0k/yapi-to-typescript/assets/logo.png',

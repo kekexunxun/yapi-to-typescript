@@ -18,6 +18,7 @@ order: 1
 - 支持上传文件
 - 支持生成 JavaScript 代码
 - 支持 Swagger
+- 支持 Apifox
 
 ## 环境要求
 
@@ -28,26 +29,18 @@ order: 1
 
 ## 安装
 
-选择你常用的包管理器将 `yapi-to-typescript` 加入项目依赖即可：
+选择你常用的包管理器将 `yapi-apifox-to-typescript` 加入项目依赖即可：
 
 ```bash
 # npm
-npm i yapi-to-typescript
+npm i yapi-apifox-to-typescript
 
 # yarn
-yarn add yapi-to-typescript
+yarn add yapi-apifox-to-typescript
 
 # pnpm
-pnpm add yapi-to-typescript
+pnpm add yapi-apifox-to-typescript
 ```
-
-如果你在国内且没有任何科学<span style="font-size: 0;">习</span>上网措施，上述安装过程可能会非常慢，推荐你使用 [tbify](https://github.com/fjc0k/tbify)，这个工具可以自动将 npm、yarn 等包管理工具连上国内的淘宝镜像，加速安装。
-
-## 交流群
-
-钉钉扫码加入交流群：
-
-<img src="https://cdn.jsdelivr.net/gh/fjc0k/yapi-to-typescript@master/assets/dd.jpg" width="300" />
 
 ## 许可
 

@@ -1,5 +1,8 @@
 import fetch from 'cross-fetch'
-import { RequestBodyType, RequestFunctionParams } from 'yapi-to-typescript'
+import {
+  RequestBodyType,
+  RequestFunctionParams,
+} from 'yapi-apifox-to-typescript'
 
 export interface RequestOptions {
   /**

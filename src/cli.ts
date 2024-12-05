@@ -71,7 +71,7 @@ export async function run(
           查看帮助: ytt help
 
         # GitHub
-          https://github.com/fjc0k/yapi-to-typescript
+          https://github.com/kekexunxun/yapi-to-typescript
       `}\n`,
     )
   } else if (cmd === 'init') {
@@ -106,7 +106,7 @@ export async function run(
     await fs.outputFile(
       outputConfigFile,
       dedent`
-        import { defineConfig } from 'yapi-to-typescript'
+        import { defineConfig } from 'yapi-apifox-to-typescript'
 
         export default defineConfig([
           {
