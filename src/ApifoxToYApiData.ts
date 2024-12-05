@@ -128,8 +128,8 @@ interface ApifoxInterfaceData {
       'title': string
       'type': string
       'properties': {}
-      'x-apifox-refs'?: {}
-      'x-apifox-orders'?: []
+      'x-apifox-refs'?: Record<string, { $ref: string }>
+      'x-apifox-orders'?: string[]
     }
     example: string
   }
@@ -337,7 +337,10 @@ export class ApifoxToYApiData {
         }
 
         // 处理request中可能存在的ref
-        if (resultData.requestBody.jsonSchema?.['x-apifox-refs']) {
+        if (
+          resultData.requestBody.jsonSchema?.['x-apifox-refs'] &&
+          resultData.requestBody.jsonSchema?.['x-apifox-orders']
+        ) {
           // @ts-ignore
           const reqref =
             resultData.requestBody.jsonSchema['x-apifox-refs'][
