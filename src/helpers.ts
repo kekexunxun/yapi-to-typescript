@@ -149,11 +149,12 @@ export function prepare(
   if (dataIsObject) {
     // 替换路径参数
     if (
+      requestConfig.paramNames &&
       Array.isArray(requestConfig.paramNames) &&
       requestConfig.paramNames.length > 0
     ) {
       Object.keys(data).forEach(key => {
-        if (requestConfig.paramNames.indexOf(key) >= 0) {
+        if (requestConfig.paramNames!.indexOf(key) >= 0) {
           // ref: https://github.com/YMFE/yapi/blob/master/client/containers/Project/Interface/InterfaceList/InterfaceEditForm.js#L465
           requestPath = requestPath
             .replace(new RegExp(`\\{${key}\\}`, 'g'), data[key])
@@ -166,16 +167,18 @@ export function prepare(
     // 追加查询参数到路径上
     let queryString = ''
     if (
+      requestConfig.queryNames &&
       Array.isArray(requestConfig.queryNames) &&
       requestConfig.queryNames.length > 0
     ) {
       Object.keys(data).forEach(key => {
-        if (requestConfig.queryNames.indexOf(key) >= 0) {
+        if (requestConfig.queryNames!.indexOf(key) >= 0) {
           if (data[key] != null) {
             queryString += `${queryString ? '&' : ''}${queryStringify(
               key,
               data[key],
-              requestConfig.queryStringArrayFormat,
+              requestConfig.queryStringArrayFormat ||
+                QueryStringArrayFormat.brackets,
             )}`
           }
           delete data[key]
@@ -198,17 +201,8 @@ export function prepare(
   // 获取表单数据
   const getFormData = () => {
     const useNativeFormData = typeof FormData !== 'undefined'
-    const useNodeFormData =
-      !useNativeFormData &&
-      // https://github.com/fjc0k/vtils/blob/master/src/utils/inNodeJS.ts
-      typeof global === 'object' &&
-      typeof global['process'] === 'object' &&
-      typeof global['process']['versions'] === 'object' &&
-      global['process']['versions']['node'] != null
     const UniFormData: typeof FormData | undefined = useNativeFormData
       ? FormData
-      : useNodeFormData
-      ? eval(`require('form-data')`)
       : undefined
     if (!UniFormData) {
       throw new Error('当前环境不支持 FormData')
@@ -219,7 +213,9 @@ export function prepare(
     })
     Object.keys(fileData).forEach(key => {
       const options = (requestData[key] as FileData).getOptions()
-      const files = Array.isArray(fileData[key]) ? fileData[key] : [fileData[key]]
+      const files = Array.isArray(fileData[key])
+        ? fileData[key]
+        : [fileData[key]]
       files.forEach((file: Blob) => {
         formData.append(
           key,

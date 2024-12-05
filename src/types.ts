@@ -618,6 +618,29 @@ export interface SharedConfig {
     interfaceInfo: ExtendedInterface,
     changeCase: ChangeCase,
   ): string
+
+  /**
+   * 是否需要忽略输出devUrl, mockUrl, prodUrl
+   * 开启该选项后将不会输出与URL相关内容
+   * @default false
+   */
+  withoutUrl?: boolean
+
+  /**
+   * 师傅需要忽略输出无用的配置参数
+   * 开启该选项后将不会输出以下字段
+   * requestBodyType
+   * responseBodyType
+   * dataKey
+   * requestDataOptional
+   * requestDataJsonSchema
+   * responseDataJsonSchema
+   * requestFunctionName
+   * extraInfo
+   *
+   * @default false
+   */
+  ignoreUselessConfigVar?: boolean
 }
 
 /**
@@ -668,10 +691,11 @@ export interface ServerConfig extends SharedConfig {
 
   /**
    * 服务类型。
+   * 当serverType为Apifox时，填写的serverUrl无效
    *
    * @default 'yapi'
    */
-  serverType?: 'yapi' | 'swagger'
+  serverType?: 'yapi' | 'swagger' | 'apifox'
 
   /**
    * 项目列表。
@@ -696,50 +720,41 @@ export type Config = ServerConfig | ServerConfig[]
 /**
  * 请求配置。
  */
-export interface RequestConfig<
-  MockUrl extends string = string,
-  DevUrl extends string = string,
-  ProdUrl extends string = string,
-  Path extends string = string,
-  DataKey extends OneOrMore<string> | undefined = OneOrMore<string> | undefined,
-  ParamName extends string = string,
-  QueryName extends string = string,
-  RequestDataOptional extends boolean = boolean,
-> {
+export interface RequestConfig {
   /** 接口 Mock 地址，结尾无 `/` */
-  mockUrl: MockUrl
+  mockUrl?: string
   /** 接口测试环境地址，结尾无 `/` */
-  devUrl: DevUrl
+  devUrl?: string
   /** 接口生产环境地址，结尾无 `/` */
-  prodUrl: ProdUrl
+  prodUrl?: string
   /** 接口路径，以 `/` 开头 */
-  path: Path
+  path: string
   /** 请求方法 */
   method: Method
   /** 请求头，除了 Content-Type 的所有头 */
-  requestHeaders: Record<string, string>
+  requestHeaders?: Record<string, string>
   /** 请求数据类型 */
-  requestBodyType: RequestBodyType
+  requestBodyType?: RequestBodyType
   /** 返回数据类型 */
-  responseBodyType: ResponseBodyType
+  responseBodyType?: ResponseBodyType
   /** 数据所在键 */
-  dataKey: DataKey
+  dataKey?: string
   /** 路径参数的名称列表 */
-  paramNames: ParamName[]
+  paramNames?: string[]
   /** 查询参数的名称列表 */
-  queryNames: QueryName[]
+  queryNames?: string[]
   /** 请求数据是否可选 */
-  requestDataOptional: RequestDataOptional
+  requestDataOptional?: boolean
   /** 请求数据的 JSON Schema (仅开启了 JSON Schema 生成时生效) */
-  requestDataJsonSchema: JSONSchema4
+  requestDataJsonSchema?: JSONSchema4
   /** 返回数据的 JSON Schema (仅开启了 JSON Schema 生成时生效) */
-  responseDataJsonSchema: JSONSchema4
+  responseDataJsonSchema?: JSONSchema4
   /** 请求函数名称 */
-  requestFunctionName: string
+  requestFunctionName?: string
   /** 如何格式化查询字符串中的数组值 */
-  queryStringArrayFormat: QueryStringArrayFormat
+  queryStringArrayFormat?: QueryStringArrayFormat
   /** 额外信息 */
-  extraInfo: Record<string, any>
+  extraInfo?: Record<string, any>
 }
 
 /**

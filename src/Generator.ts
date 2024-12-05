@@ -2,6 +2,7 @@ import * as changeCase from 'change-case'
 import dayjs from 'dayjs'
 import fs from 'fs-extra'
 import path from 'path'
+import { ApifoxToYApiData, TProjectInfo } from './ApifoxToYApiData'
 import {
   castArray,
   cloneDeepFast,
@@ -26,7 +27,6 @@ import {
   Method,
   Project,
   ProjectConfig,
-  QueryStringArrayFormat,
   RequestBodyType,
   ServerConfig,
   SyntheticalConfig,
@@ -114,10 +114,20 @@ export class Generator {
         )
         return Promise.all(
           projects.map(async (projectConfig, projectIndex) => {
-            const projectInfo = await this.fetchProjectInfo({
-              ...serverConfig,
-              ...projectConfig,
-            })
+            let projectInfo: TProjectInfo
+            let apifoxInstance = null
+            if (serverConfig.serverType === 'apifox') {
+              apifoxInstance = new ApifoxToYApiData({
+                token: projectConfig.token as string,
+                categories: projectConfig.categories,
+              })
+              projectInfo = await apifoxInstance.getProjectInfo()
+            } else {
+              projectInfo = await this.fetchProjectInfo({
+                ...serverConfig,
+                ...projectConfig,
+              })
+            }
             await Promise.all(
               projectConfig.categories.map(
                 async (categoryConfig, categoryIndex) => {
@@ -173,11 +183,18 @@ export class Generator {
                         syntheticalConfig.prodUrl = projectInfo.getProdUrl(
                           syntheticalConfig.prodEnvName!,
                         )
-
                         // 接口列表
-                        let interfaceList = await this.fetchInterfaceList(
-                          syntheticalConfig,
-                        )
+                        let interfaceList: InterfaceList = []
+                        if (syntheticalConfig.serverType === 'apifox') {
+                          interfaceList =
+                            (await apifoxInstance?.getInterfaceList(
+                              syntheticalConfig,
+                            )) || []
+                        } else {
+                          interfaceList = await this.fetchInterfaceList(
+                            syntheticalConfig,
+                          )
+                        }
                         interfaceList = interfaceList
                           .map(interfaceInfo => {
                             // 实现 _project 字段
@@ -254,24 +271,31 @@ export class Generator {
                                 sortByWeights(
                                   groupedInterfaceCodes[outputFilePath],
                                 ).map(item => item.categoryUID),
-                              ).map(categoryUID =>
-                                syntheticalConfig.typesOnly
-                                  ? ''
-                                  : dedent`
-                                      const mockUrl${categoryUID} = ${JSON.stringify(
-                                      syntheticalConfig.mockUrl,
-                                    )} as any
-                                      const devUrl${categoryUID} = ${JSON.stringify(
-                                      syntheticalConfig.devUrl,
-                                    )} as any
-                                      const prodUrl${categoryUID} = ${JSON.stringify(
-                                      syntheticalConfig.prodUrl,
-                                    )} as any
-                                      const dataKey${categoryUID} = ${JSON.stringify(
-                                      syntheticalConfig.dataKey,
-                                    )} as any
-                                    `,
-                              ),
+                              ).map(categoryUID => {
+                                if (syntheticalConfig.typesOnly) return ''
+                                let text = ''
+                                if (syntheticalConfig.withoutUrl !== true) {
+                                  text += `const devUrl${categoryUID} = ${JSON.stringify(
+                                    syntheticalConfig.devUrl,
+                                  )} as any
+                                  const mockUrl${categoryUID} = ${JSON.stringify(
+                                    syntheticalConfig.mockUrl,
+                                  )} as any
+                                  const prodUrl${categoryUID} = ${JSON.stringify(
+                                    syntheticalConfig.prodUrl,
+                                  )} as any`
+                                }
+                                if (
+                                  syntheticalConfig.ignoreUselessConfigVar !==
+                                  true
+                                ) {
+                                  text += `const dataKey${categoryUID} = ${JSON.stringify(
+                                    syntheticalConfig.dataKey,
+                                  )} as any`
+                                }
+
+                                return dedent(text)
+                              }),
                               ...sortByWeights(
                                 groupedInterfaceCodes[outputFilePath],
                               ).map(item => item.code),
@@ -374,7 +398,7 @@ export class Generator {
             await fs.outputFile(
               requestFunctionFilePath,
               dedent`
-                import type { RequestFunctionParams } from 'yapi-to-typescript'
+                import type { RequestFunctionParams } from 'yapi-apifox-to-typescript'
 
                 export interface RequestOptions {
                   /**
@@ -397,11 +421,15 @@ export class Generator {
                 ): Promise<TResponseData> {
                   return new Promise<TResponseData>((resolve, reject) => {
                     // 基本地址
-                    const baseUrl = options.server === 'mock'
+                   ${
+                     syntheticalConfig.withoutUrl
+                       ? `const baseUrl = ''`
+                       : ` const baseUrl = options.server === 'mock'
                       ? payload.mockUrl
                       : options.server === 'dev'
                         ? payload.devUrl
-                        : payload.prodUrl
+                        : payload.prodUrl`
+                   }
 
                     // 请求地址
                     const url = \`\${baseUrl}\${payload.path}\`
@@ -421,7 +449,7 @@ export class Generator {
               requestHookMakerFilePath,
               dedent`
                 import { useState, useEffect } from 'react'
-                import type { RequestConfig } from 'yapi-to-typescript'
+                import type { RequestConfig } from 'yapi-apifox-to-typescript'
                 import type { Request } from ${JSON.stringify(
                   getNormalizedRelativePath(
                     requestHookMakerFilePath,
@@ -468,7 +496,7 @@ export class Generator {
           /* tslint:disable */
           /* eslint-disable */
 
-          /* 该文件由 yapi-to-typescript 自动生成，请勿直接修改！！！ */
+          /* 该文件由 yapi-apifox-to-typescript 自动生成，请勿直接修改！！！ */
 
           ${
             syntheticalConfig.typesOnly
@@ -481,10 +509,14 @@ export class Generator {
               : dedent`
                 // @ts-ignore
                 // prettier-ignore
-                import { QueryStringArrayFormat, Method, RequestBodyType, ResponseBodyType, FileData, prepare } from 'yapi-to-typescript'
+                import { QueryStringArrayFormat, Method, ${
+                  syntheticalConfig.ignoreUselessConfigVar
+                    ? ``
+                    : `RequestBodyType, ResponseBodyType, `
+                }FileData, prepare } from 'yapi-apifox-to-typescript'
                 // @ts-ignore
                 // prettier-ignore
-                import type { RequestConfig, RequestFunctionRestArgs } from 'yapi-to-typescript'
+                import type { RequestConfig, RequestFunctionRestArgs } from 'yapi-apifox-to-typescript'
                 // @ts-ignore
                 import request from ${JSON.stringify(
                   getNormalizedRelativePath(
@@ -706,7 +738,7 @@ export class Generator {
     const requestConfigName = changeCase.camelCase(
       `${requestFunctionName}RequestConfig`,
     )
-    const requestConfigTypeName = changeCase.pascalCase(requestConfigName)
+    const requestConfigTypeName = 'RequestConfig'
     const requestDataTypeName = isFunction(
       syntheticalConfig.getRequestDataTypeName,
     )
@@ -740,6 +772,7 @@ export class Generator {
       responseDataJsonSchema,
       responseDataTypeName,
     )
+    // @ts-ignore
     const isRequestDataOptional = /(\{\}|any)$/s.test(requestDataType)
     const requestHookName =
       syntheticalConfig.reactHooks && syntheticalConfig.reactHooks.enabled
@@ -757,16 +790,16 @@ export class Generator {
       extendedInterfaceInfo.req_params /* istanbul ignore next */ || []
     ).map(item => item.name)
     const paramNamesLiteral = JSON.stringify(paramNames)
-    const paramNameType =
-      paramNames.length === 0 ? 'string' : `'${paramNames.join("' | '")}'`
+    // const paramNameType =
+    //   paramNames.length === 0 ? 'string' : `'${paramNames.join("' | '")}'`
 
     // 支持查询参数
     const queryNames = (
       extendedInterfaceInfo.req_query /* istanbul ignore next */ || []
     ).map(item => item.name)
     const queryNamesLiteral = JSON.stringify(queryNames)
-    const queryNameType =
-      queryNames.length === 0 ? 'string' : `'${queryNames.join("' | '")}'`
+    // const queryNameType =
+    //   queryNames.length === 0 ? 'string' : `'${queryNames.join("' | '")}'`
 
     // 接口注释
     const genComment = (genTitle: (title: string) => string) => {
@@ -874,6 +907,14 @@ export class Generator {
             changeCase,
           )
         : {}
+    const requestHeaders = JSON.stringify(
+      (extendedInterfaceInfo.req_headers || [])
+        .filter(item => item.name.toLowerCase() !== 'content-type')
+        .reduce<Record<string, string>>((res, item) => {
+          res[item.name] = item.value
+          return res
+        }, {}),
+    )
 
     return dedent`
       ${genComment(title => `接口 ${title} 的 **请求类型**`)}
@@ -886,45 +927,45 @@ export class Generator {
         syntheticalConfig.typesOnly
           ? ''
           : dedent`
-            ${genComment(title => `接口 ${title} 的 **请求配置的类型**`)}
-            type ${requestConfigTypeName} = Readonly<RequestConfig<
-              ${JSON.stringify(syntheticalConfig.mockUrl)},
-              ${JSON.stringify(syntheticalConfig.devUrl)},
-              ${JSON.stringify(syntheticalConfig.prodUrl)},
-              ${JSON.stringify(extendedInterfaceInfo.path)},
-              ${JSON.stringify(syntheticalConfig.dataKey) || 'undefined'},
-              ${paramNameType},
-              ${queryNameType},
-              ${JSON.stringify(isRequestDataOptional)}
-            >>
-
             ${genComment(title => `接口 ${title} 的 **请求配置**`)}
-            const ${requestConfigName}: ${requestConfigTypeName} = ${COMPRESSOR_TREE_SHAKING_ANNOTATION} {
+            ${
+              syntheticalConfig.withoutUrl !== true
+                ? `const ${requestConfigName}: ${requestConfigTypeName} = ${COMPRESSOR_TREE_SHAKING_ANNOTATION} {
               mockUrl: mockUrl${categoryUID},
               devUrl: devUrl${categoryUID},
-              prodUrl: prodUrl${categoryUID},
+              prodUrl: prodUrl${categoryUID},`
+                : `const ${requestConfigName}: ${requestConfigTypeName} = ${COMPRESSOR_TREE_SHAKING_ANNOTATION} {
+              `
+            }
               path: ${JSON.stringify(extendedInterfaceInfo.path)},
               method: Method.${extendedInterfaceInfo.method},
-              requestHeaders: ${JSON.stringify(
-                (extendedInterfaceInfo.req_headers || [])
-                  .filter(item => item.name.toLowerCase() !== 'content-type')
-                  .reduce<Record<string, string>>((res, item) => {
-                    res[item.name] = item.value
-                    return res
-                  }, {}),
-              )},
-              requestBodyType: RequestBodyType.${
-                extendedInterfaceInfo.method === Method.GET
-                  ? RequestBodyType.query
-                  : extendedInterfaceInfo.req_body_type /* istanbul ignore next */ ||
-                    RequestBodyType.none
-              },
+              ${
+                paramNames.length === 0
+                  ? ''
+                  : `paramNames: ${paramNamesLiteral},`
+              }${
+              queryNames.length === 0 ? '' : `queryNames: ${queryNamesLiteral},`
+            }${
+              syntheticalConfig.queryStringArrayFormat
+                ? `queryStringArrayFormat: QueryStringArrayFormat.${syntheticalConfig.queryStringArrayFormat},`
+                : ''
+            }${
+              requestHeaders === '{}'
+                ? ''
+                : `requestHeaders: ${requestHeaders},`
+            }${
+              syntheticalConfig.ignoreUselessConfigVar
+                ? ``
+                : `requestBodyType: RequestBodyType.${
+                    extendedInterfaceInfo.method === Method.GET
+                      ? RequestBodyType.query
+                      : extendedInterfaceInfo.req_body_type /* istanbul ignore next */ ||
+                        RequestBodyType.none
+                  },
               responseBodyType: ResponseBodyType.${
                 extendedInterfaceInfo.res_body_type
               },
               dataKey: dataKey${categoryUID},
-              paramNames: ${paramNamesLiteral},
-              queryNames: ${queryNamesLiteral},
               requestDataOptional: ${JSON.stringify(isRequestDataOptional)},
               requestDataJsonSchema: ${JSON.stringify(
                 syntheticalConfig.jsonSchema?.enabled &&
@@ -939,11 +980,8 @@ export class Generator {
                   : {},
               )},
               requestFunctionName: ${JSON.stringify(requestFunctionName)},
-              queryStringArrayFormat: QueryStringArrayFormat.${
-                syntheticalConfig.queryStringArrayFormat ||
-                QueryStringArrayFormat.brackets
-              },
-              extraInfo: ${JSON.stringify(requestFunctionExtraInfo)},
+              extraInfo: ${JSON.stringify(requestFunctionExtraInfo)}`
+            }
             }
 
             ${genComment(title => `接口 ${title} 的 **请求函数**`)}
