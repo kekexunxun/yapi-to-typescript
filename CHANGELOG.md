@@ -1,5 +1,15 @@
 # 更新日志
 
+## [4.1.0](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.0.0...v4.1.0) (2024-12-26)
+
+### 修复
+
+- ignoreUselessConfigVar generate error ([5ba5880](https://github.com/kekexunxun/yapi-to-typescript/commit/5ba5880624c1f74332f8b343cda234ef2acf96dd))
+
+### 特性
+
+- 支持多层级的 apifox 接口数据 ([f076d26](https://github.com/kekexunxun/yapi-to-typescript/commit/f076d26546a04c36241c572133e3340b89201ba3))
+
 ## [4.0.0](https://github.com/kekexunxun/yapi-to-typescript/compare/v3.38.0...v4.0.0) (2024-12-05)
 
 ### 特性
