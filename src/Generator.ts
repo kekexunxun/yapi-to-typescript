@@ -277,13 +277,13 @@ export class Generator {
                                 if (syntheticalConfig.withoutUrl !== true) {
                                   text += `const devUrl${categoryUID} = ${JSON.stringify(
                                     syntheticalConfig.devUrl,
-                                  )} as any
+                                  )} as any;
                                   const mockUrl${categoryUID} = ${JSON.stringify(
                                     syntheticalConfig.mockUrl,
-                                  )} as any
+                                  )} as any;
                                   const prodUrl${categoryUID} = ${JSON.stringify(
                                     syntheticalConfig.prodUrl,
-                                  )} as any`
+                                  )} as any;`
                                 }
                                 if (
                                   syntheticalConfig.ignoreUselessConfigVar !==
@@ -291,7 +291,7 @@ export class Generator {
                                 ) {
                                   text += `const dataKey${categoryUID} = ${JSON.stringify(
                                     syntheticalConfig.dataKey,
-                                  )} as any`
+                                  )} as any;`
                                 }
 
                                 return dedent(text)
@@ -931,19 +931,18 @@ export class Generator {
             ${
               syntheticalConfig.withoutUrl !== true
                 ? `const ${requestConfigName}: ${requestConfigTypeName} = ${COMPRESSOR_TREE_SHAKING_ANNOTATION} {
-              mockUrl: mockUrl${categoryUID},
-              devUrl: devUrl${categoryUID},
-              prodUrl: prodUrl${categoryUID},`
-                : `const ${requestConfigName}: ${requestConfigTypeName} = ${COMPRESSOR_TREE_SHAKING_ANNOTATION} {
-              `
+                  mockUrl: mockUrl${categoryUID},
+                  devUrl: devUrl${categoryUID},
+                  prodUrl: prodUrl${categoryUID},`
+                : `const ${requestConfigName}: ${requestConfigTypeName} = ${COMPRESSOR_TREE_SHAKING_ANNOTATION} {`
             }
-              path: ${JSON.stringify(extendedInterfaceInfo.path)},
-              method: Method.${extendedInterfaceInfo.method},
-              ${
-                paramNames.length === 0
-                  ? ''
-                  : `paramNames: ${paramNamesLiteral},`
-              }${
+                path: ${JSON.stringify(extendedInterfaceInfo.path)},
+                method: Method.${extendedInterfaceInfo.method},
+                ${
+                  paramNames.length === 0
+                    ? ''
+                    : `paramNames: ${paramNamesLiteral},`
+                }${
               queryNames.length === 0 ? '' : `queryNames: ${queryNamesLiteral},`
             }${
               syntheticalConfig.queryStringArrayFormat
@@ -962,25 +961,25 @@ export class Generator {
                       : extendedInterfaceInfo.req_body_type /* istanbul ignore next */ ||
                         RequestBodyType.none
                   },
-              responseBodyType: ResponseBodyType.${
-                extendedInterfaceInfo.res_body_type
-              },
-              dataKey: dataKey${categoryUID},
-              requestDataOptional: ${JSON.stringify(isRequestDataOptional)},
-              requestDataJsonSchema: ${JSON.stringify(
-                syntheticalConfig.jsonSchema?.enabled &&
-                  syntheticalConfig.jsonSchema?.requestData !== false
-                  ? requestDataJsonSchema
-                  : {},
-              )},
-              responseDataJsonSchema: ${JSON.stringify(
-                syntheticalConfig.jsonSchema?.enabled &&
-                  syntheticalConfig.jsonSchema?.responseData !== false
-                  ? responseDataJsonSchema
-                  : {},
-              )},
-              requestFunctionName: ${JSON.stringify(requestFunctionName)},
-              extraInfo: ${JSON.stringify(requestFunctionExtraInfo)}`
+                responseBodyType: ResponseBodyType.${
+                  extendedInterfaceInfo.res_body_type
+                },
+                dataKey: dataKey${categoryUID},
+                requestDataOptional: ${JSON.stringify(isRequestDataOptional)},
+                requestDataJsonSchema: ${JSON.stringify(
+                  syntheticalConfig.jsonSchema?.enabled &&
+                    syntheticalConfig.jsonSchema?.requestData !== false
+                    ? requestDataJsonSchema
+                    : {},
+                )},
+                responseDataJsonSchema: ${JSON.stringify(
+                  syntheticalConfig.jsonSchema?.enabled &&
+                    syntheticalConfig.jsonSchema?.responseData !== false
+                    ? responseDataJsonSchema
+                    : {},
+                )},
+                requestFunctionName: ${JSON.stringify(requestFunctionName)},
+                extraInfo: ${JSON.stringify(requestFunctionExtraInfo)}`
             }
             }
 
