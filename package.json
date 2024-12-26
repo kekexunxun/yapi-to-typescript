@@ -37,8 +37,8 @@
     "docs": "npm run docs:build && gh-pages --dist docs/dist --dest handbook",
     "docs:build": "dumi build",
     "docs:dev": "dumi dev",
-    "release": "standard-version -a && yarn build && git push --follow-tags origin master && npm publish",
-    "releaseBeta": "standard-version -a --release-as patch --prerelease beta && yarn build && git push --follow-tags origin master && npm publish --tag next",
+    "release": "standard-version -a && npm run build && git push --follow-tags origin master && npm publish",
+    "releaseBeta": "standard-version -a --release-as patch --prerelease beta && npm run build && git push --follow-tags origin master && npm publish --tag next",
     "testApi": "ts-node -T src/cli.ts"
   },
   "husky": {
