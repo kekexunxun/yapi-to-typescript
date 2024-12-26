@@ -34,6 +34,7 @@ import {
 import { exec } from 'child_process'
 import {
   getCachedPrettierOptions,
+  getFilteredCat,
   getNormalizedRelativePath,
   getPrettier,
   getRequestDataJsonSchema,
@@ -131,28 +132,15 @@ export class Generator {
             await Promise.all(
               projectConfig.categories.map(
                 async (categoryConfig, categoryIndex) => {
-                  // 分类处理
-                  // 数组化
-                  let categoryIds = castArray(categoryConfig.id)
-                  // 全部分类
-                  if (categoryIds.includes(0)) {
-                    categoryIds.push(...projectInfo.cats.map(cat => cat._id))
+                  let categoryIds: number[] = []
+                  if (serverConfig.serverType === 'apifox' && apifoxInstance) {
+                    categoryIds = apifoxInstance.getCats(categoryConfig)
+                  } else {
+                    categoryIds = getFilteredCat(
+                      categoryConfig,
+                      projectInfo.cats,
+                    )
                   }
-                  // 唯一化
-                  categoryIds = uniq(categoryIds)
-                  // 去掉被排除的分类
-                  const excludedCategoryIds = categoryIds
-                    .filter(id => id < 0)
-                    .map(Math.abs)
-                  categoryIds = categoryIds.filter(
-                    id => !excludedCategoryIds.includes(Math.abs(id)),
-                  )
-                  // 删除不存在的分类
-                  categoryIds = categoryIds.filter(
-                    id => !!projectInfo.cats.find(cat => cat._id === id),
-                  )
-                  // 顺序化
-                  categoryIds = categoryIds.sort()
 
                   const codes = (
                     await Promise.all(
@@ -185,11 +173,13 @@ export class Generator {
                         )
                         // 接口列表
                         let interfaceList: InterfaceList = []
-                        if (syntheticalConfig.serverType === 'apifox') {
-                          interfaceList =
-                            (await apifoxInstance?.getInterfaceList(
-                              syntheticalConfig,
-                            )) || []
+                        if (
+                          syntheticalConfig.serverType === 'apifox' &&
+                          apifoxInstance
+                        ) {
+                          interfaceList = await apifoxInstance.getInterfaceList(
+                            syntheticalConfig,
+                          )
                         } else {
                           interfaceList = await this.fetchInterfaceList(
                             syntheticalConfig,

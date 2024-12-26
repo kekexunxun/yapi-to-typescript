@@ -16,11 +16,11 @@ import {
   memoize,
   run,
   traverse,
+  uniq,
 } from 'vtils'
-import { compile, Options } from 'json-schema-to-typescript'
-import { Defined, OneOrMore } from 'vtils/types'
-import { FileData } from './helpers'
 import {
+  Category,
+  CategoryConfig,
   Interface,
   Method,
   PropDefinition,
@@ -30,6 +30,9 @@ import {
   Required,
   ResponseBodyType,
 } from './types'
+import { compile, Options } from 'json-schema-to-typescript'
+import { Defined, OneOrMore } from 'vtils/types'
+import { FileData } from './helpers'
 import { JSONSchema4, JSONSchema4TypeName } from 'json-schema'
 import { URL } from 'url'
 
@@ -663,4 +666,30 @@ export async function httpGet<T>(
   })
 
   return res.json()
+}
+
+/**
+ * 获取过滤后的菜单
+ */
+export const getFilteredCat = (cat: CategoryConfig, cats: Category[]) => {
+  // 分类处理
+  // 数组化
+  let categoryIds = castArray(cat.id)
+  // 全部分类
+  if (categoryIds.includes(0)) {
+    categoryIds.push(...cats.map(c => c._id))
+  }
+  // 唯一化
+  categoryIds = uniq(categoryIds)
+  // 去掉被排除的分类
+  const excludedCategoryIds = categoryIds.filter(id => id < 0).map(Math.abs)
+  categoryIds = categoryIds.filter(
+    id => !excludedCategoryIds.includes(Math.abs(id)),
+  )
+  // 删除不存在的分类
+  categoryIds = categoryIds.filter(id => !!cats.find(c => c._id === id))
+  // 顺序化
+  categoryIds = categoryIds.sort()
+
+  return categoryIds
 }
