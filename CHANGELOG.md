@@ -1,5 +1,13 @@
 # 更新日志
 
+### [4.1.1](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.1.0...v4.1.1) (2024-12-30)
+
+### 修复
+
+- 保留 content-type 的 header 导出 ([7810439](https://github.com/kekexunxun/yapi-to-typescript/commit/7810439f126cff015150664609f72c3733474709))
+- 调整构建命令 ([1bfa2b8](https://github.com/kekexunxun/yapi-to-typescript/commit/1bfa2b82dccdb0c597df184f808a24e95bc2c25a))
+- 修复入参为 formdata 时，接口定义无数据的问题 ([a60be84](https://github.com/kekexunxun/yapi-to-typescript/commit/a60be847d283dec6417929aaa805d356cba967db))
+
 ## [4.1.0](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.0.0...v4.1.0) (2024-12-26)
 
 ### 修复
