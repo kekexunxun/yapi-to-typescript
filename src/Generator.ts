@@ -899,7 +899,7 @@ export class Generator {
         : {}
     const requestHeaders = JSON.stringify(
       (extendedInterfaceInfo.req_headers || [])
-        .filter(item => item.name.toLowerCase() !== 'content-type')
+        // .filter(item => item.name.toLowerCase() !== 'content-type')
         .reduce<Record<string, string>>((res, item) => {
           res[item.name] = item.value
           return res
