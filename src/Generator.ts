@@ -499,10 +499,10 @@ export class Generator {
               : dedent`
                 // @ts-ignore
                 // prettier-ignore
-                import { QueryStringArrayFormat, Method, ${
+                import { QueryStringArrayFormat, Method, RequestBodyType, ${
                   syntheticalConfig.ignoreUselessConfigVar
                     ? ``
-                    : `RequestBodyType, ResponseBodyType, `
+                    : `ResponseBodyType, `
                 }FileData, prepare } from 'yapi-apifox-to-typescript'
                 // @ts-ignore
                 // prettier-ignore
@@ -899,7 +899,7 @@ export class Generator {
         : {}
     const requestHeaders = JSON.stringify(
       (extendedInterfaceInfo.req_headers || [])
-        // .filter(item => item.name.toLowerCase() !== 'content-type')
+        .filter(item => item.name.toLowerCase() !== 'content-type')
         .reduce<Record<string, string>>((res, item) => {
           res[item.name] = item.value
           return res
@@ -942,19 +942,19 @@ export class Generator {
               requestHeaders === '{}'
                 ? ''
                 : `requestHeaders: ${requestHeaders},`
-            }${
-              syntheticalConfig.ignoreUselessConfigVar
-                ? ``
-                : `requestBodyType: RequestBodyType.${
-                    extendedInterfaceInfo.method === Method.GET
-                      ? RequestBodyType.query
-                      : extendedInterfaceInfo.req_body_type /* istanbul ignore next */ ||
-                        RequestBodyType.none
-                  },
-                responseBodyType: ResponseBodyType.${
+            }requestBodyType: RequestBodyType.${
+              extendedInterfaceInfo.method === Method.GET
+                ? RequestBodyType.query
+                : extendedInterfaceInfo.req_body_type /* istanbul ignore next */ ||
+                  RequestBodyType.none
+            },
+          ${
+            syntheticalConfig.ignoreUselessConfigVar
+              ? ``
+              : `responseBodyType: ResponseBodyType.${
                   extendedInterfaceInfo.res_body_type
                 },
-                dataKey: dataKey${categoryUID},
+            dataKey: dataKey${categoryUID},
                 requestDataOptional: ${JSON.stringify(isRequestDataOptional)},
                 requestDataJsonSchema: ${JSON.stringify(
                   syntheticalConfig.jsonSchema?.enabled &&
@@ -970,7 +970,7 @@ export class Generator {
                 )},
                 requestFunctionName: ${JSON.stringify(requestFunctionName)},
                 extraInfo: ${JSON.stringify(requestFunctionExtraInfo)}`
-            }
+          }
             }
 
             ${genComment(title => `接口 ${title} 的 **请求函数**`)}
