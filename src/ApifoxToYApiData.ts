@@ -7,6 +7,7 @@ import {
   Method,
   Project,
   RequestBodyType,
+  RequestFormItemType,
   RequestParamType,
   RequestQueryType,
   Required,
@@ -136,7 +137,7 @@ interface ApifoxApiDataRequestParameters {
   id: string
   name: string
   required: boolean
-  schema: { format: string; type: string }
+  schema?: { format: string; type: string }
   type: string
 }
 
@@ -177,7 +178,7 @@ interface ApifoxApiData {
   projectId: number
   requestBody: {
     example: string
-    parameters: string[]
+    parameters: ApifoxApiDataRequestParameters[]
     type: string
     jsonSchema?: ApifoxJsonSchema
   }
@@ -453,11 +454,24 @@ export class ApifoxToYApiData {
                     ? RequestQueryType.string
                     : RequestQueryType.number,
               })) || [],
-            req_body_type: resultData.requestBody.jsonSchema
-              ? RequestBodyType.json
-              : RequestBodyType.raw,
+            req_body_type:
+              resultData.requestBody.type === 'multipart/form-data'
+                ? RequestBodyType.form
+                : resultData.requestBody.jsonSchema
+                ? RequestBodyType.json
+                : RequestBodyType.raw,
             req_body_is_json_schema: !!resultData.requestBody.jsonSchema,
-            req_body_form: [],
+            req_body_form:
+              resultData.requestBody.parameters?.map(item => ({
+                name: item.name,
+                desc: item.description,
+                example: item.example,
+                required: item.required ? Required.true : Required.false,
+                type:
+                  item.type === 'string'
+                    ? RequestFormItemType.text
+                    : RequestFormItemType.file,
+              })) || [],
             req_body_other: resultData.requestBody.jsonSchema
               ? JSON.stringify(resultData.requestBody.jsonSchema)
               : '',
