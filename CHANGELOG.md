@@ -1,5 +1,12 @@
 # 更新日志
 
+### [4.1.2](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.1.1...v4.1.2) (2024-12-30)
+
+### 修复
+
+- 调整 ignoreUselessConfigVar 过滤字段 ([7f7eca9](https://github.com/kekexunxun/yapi-to-typescript/commit/7f7eca9be8e32b88a69d12a372b661e3d2b8a4e8))
+- apifox 目录过滤失效 ([13b3168](https://github.com/kekexunxun/yapi-to-typescript/commit/13b31689daaa95fab87642f798ff6209e93f5d32))
+
 ### [4.1.1](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.1.0...v4.1.1) (2024-12-30)
 
 ### 修复
