@@ -671,7 +671,11 @@ export async function httpGet<T>(
 /**
  * 获取过滤后的菜单
  */
-export const getFilteredCat = (cat: CategoryConfig, cats: Category[]) => {
+export const getFilteredCat = (
+  cat: CategoryConfig,
+  cats: Category[],
+  isApifox = false,
+) => {
   // 分类处理
   // 数组化
   let categoryIds = castArray(cat.id)
@@ -687,7 +691,9 @@ export const getFilteredCat = (cat: CategoryConfig, cats: Category[]) => {
     id => !excludedCategoryIds.includes(Math.abs(id)),
   )
   // 删除不存在的分类
-  categoryIds = categoryIds.filter(id => !!cats.find(c => c._id === id))
+  if (!isApifox) {
+    categoryIds = categoryIds.filter(id => !!cats.find(c => c._id === id))
+  }
   // 顺序化
   categoryIds = categoryIds.sort()
 

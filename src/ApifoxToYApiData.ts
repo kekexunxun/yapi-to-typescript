@@ -293,7 +293,7 @@ export class ApifoxToYApiData {
    * 根据传入的目录配置，返回有效的目录列表
    */
   getCats(cats: CategoryConfig) {
-    const categoryIds = getFilteredCat(cats, [])
+    const categoryIds = getFilteredCat(cats, [], true)
     // 对cat进行有效性过滤
     return this.getValidCat(categoryIds)
   }
