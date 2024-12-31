@@ -1,5 +1,11 @@
 # 更新日志
 
+### [4.1.3](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.1.2...v4.1.3) (2024-12-31)
+
+### 修复
+
+- apifox 接口目录过滤异常的问题 ([2e44000](https://github.com/kekexunxun/yapi-to-typescript/commit/2e44000fc985e825429933c4a569c91b42ba8b21))
+
 ### [4.1.2](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.1.1...v4.1.2) (2024-12-30)
 
 ### 修复
