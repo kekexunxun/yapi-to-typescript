@@ -693,6 +693,8 @@ export const getFilteredCat = (
   // 删除不存在的分类
   if (!isApifox) {
     categoryIds = categoryIds.filter(id => !!cats.find(c => c._id === id))
+  } else {
+    categoryIds = categoryIds.filter(id => id !== 0)
   }
   // 顺序化
   categoryIds = categoryIds.sort()
