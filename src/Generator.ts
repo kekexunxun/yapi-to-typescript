@@ -116,11 +116,21 @@ export class Generator {
         return Promise.all(
           projects.map(async (projectConfig, projectIndex) => {
             let projectInfo: TProjectInfo
-            let apifoxInstance = null
+            let apifoxInstance: ApifoxToYApiData | null = null
             if (serverConfig.serverType === 'apifox') {
+              if (!projectConfig.projectId) {
+                throw new Error(
+                  'projectId is required when serverType is apifox',
+                )
+              }
               apifoxInstance = new ApifoxToYApiData({
                 token: projectConfig.token as string,
+                projectId: projectConfig.projectId,
                 categories: projectConfig.categories,
+                serverUrl: serverConfig.serverUrl,
+                addFoldersToTags: projectConfig.addFoldersToTags,
+                oasVersion: projectConfig.oasVersion,
+                exportFormat: projectConfig.exportFormat,
               })
               projectInfo = await apifoxInstance.getProjectInfo()
             } else {

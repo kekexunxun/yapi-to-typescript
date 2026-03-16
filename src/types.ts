@@ -673,6 +673,36 @@ export interface ProjectConfig extends SharedConfig {
   token: string | string[]
 
   /**
+   * 项目ID（Apifox专用）。
+   *
+   * 获取方式：打开项目 --> 项目设置 --> 基本信息 --> 项目ID。
+   *
+   * @example 5590448
+   */
+  projectId?: number
+
+  /**
+   * 是否将文件夹添加为标签（Apifox专用）。
+   *
+   * @default true
+   */
+  addFoldersToTags?: boolean
+
+  /**
+   * OpenAPI 版本（Apifox专用）。
+   *
+   * @default '3.0'
+   */
+  oasVersion?: string
+
+  /**
+   * 导出格式（Apifox专用）。
+   *
+   * @default 'JSON'
+   */
+  exportFormat?: 'JSON' | 'YAML'
+
+  /**
    * 分类列表。
    */
   categories: CategoryConfig[]
