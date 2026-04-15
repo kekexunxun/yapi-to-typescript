@@ -1,5 +1,13 @@
 # 更新日志
 
+### [4.2.2](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.2.1...v4.2.2) (2026-04-15)
+
+### 修复
+
+- 修复 Apifox 字段映射异常的问题 ([9566152](https://github.com/kekexunxun/yapi-to-typescript/commit/95661527aa08e24304ad270026775f5a3c3dbf61))
+- 修正作者信息 ([28c34bf](https://github.com/kekexunxun/yapi-to-typescript/commit/28c34bf8e018486fd98de7494526c2e519613f4b))
+- 移除调试日志输出 ([08123f9](https://github.com/kekexunxun/yapi-to-typescript/commit/08123f971bfe2ce6d654c237111b93d14a5cc7bd))
+
 ### [4.2.1](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.2.0...v4.2.1) (2026-04-15)
 
 ### 修复
