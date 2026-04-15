@@ -123,6 +123,8 @@ export enum RequestParamType {
   string = 'string',
   /** 数字 */
   number = 'number',
+  /** 布尔值 */
+  boolean = 'boolean',
 }
 
 /** 请求查询参数类型 */
@@ -131,6 +133,8 @@ export enum RequestQueryType {
   string = 'string',
   /** 数字 */
   number = 'number',
+  /** 布尔值 */
+  boolean = 'boolean',
 }
 
 /** 请求表单条目类型 */

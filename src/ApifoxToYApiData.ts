@@ -177,6 +177,24 @@ export class ApifoxToYApiData {
     return resolved.type || 'string'
   }
 
+  private getRequestParamType(
+    schema: OpenAPISchema | undefined,
+  ): RequestParamType {
+    const schemaType = this.getSchemaType(schema)
+    if (schemaType === 'boolean') return RequestParamType.boolean
+    if (schemaType === 'number') return RequestParamType.number
+    return RequestParamType.string
+  }
+
+  private getRequestQueryType(
+    schema: OpenAPISchema | undefined,
+  ): RequestQueryType {
+    const schemaType = this.getSchemaType(schema)
+    if (schemaType === 'boolean') return RequestQueryType.boolean
+    if (schemaType === 'number') return RequestQueryType.number
+    return RequestQueryType.string
+  }
+
   private convertParametersToReqParams(
     parameters: OpenAPIParameter[] = [],
     type: 'path' | 'query',
@@ -189,10 +207,7 @@ export class ApifoxToYApiData {
           desc: p.description || '',
           example: p.example || '',
           required: p.required ? Required.true : Required.false,
-          type:
-            this.getSchemaType(p.schema) === 'string'
-              ? RequestParamType.string
-              : RequestParamType.number,
+          type: this.getRequestParamType(p.schema),
         }))
     }
     return parameters
@@ -202,10 +217,7 @@ export class ApifoxToYApiData {
         desc: p.description || '',
         example: p.example || '',
         required: p.required ? Required.true : Required.false,
-        type:
-          this.getSchemaType(p.schema) === 'string'
-            ? RequestQueryType.string
-            : RequestQueryType.number,
+        type: this.getRequestQueryType(p.schema),
       }))
   }
 
