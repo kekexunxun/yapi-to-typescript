@@ -522,21 +522,11 @@ export class ApifoxToYApiData {
     const categoryIds = getFilteredCat(cats, [], true)
     if (categoryIds.length === 0 || categoryIds.includes(0)) {
       if (!this.openApiDoc?.tags) {
-        console.log(`📁 getCats: 返回空数组 (openApiDoc.tags 不存在)`)
         return []
       }
       const tagIds = this.openApiDoc.tags.map(tag => this.getTagId(tag.name))
-      console.log(`📁 getCats (id=0 获取全部): 返回 ${tagIds.length} 个分类`)
-      console.log(
-        `   Tags: ${this.openApiDoc.tags.map(t => t.name).join(', ')}`,
-      )
       return tagIds
     }
-    console.log(
-      `📁 getCats: 返回 ${categoryIds.length} 个分类: ${categoryIds.join(
-        ', ',
-      )}`,
-    )
     return categoryIds
   }
 
@@ -551,14 +541,13 @@ export class ApifoxToYApiData {
     const seenKeys = new Set<string>()
 
     // 调试：获取 tag 名称
-    let tagName = 'unknown'
-    if (this.openApiDoc?.tags) {
-      const tag = this.openApiDoc.tags.find(
-        t => this.getTagId(t.name) === catId,
-      )
-      tagName = tag?.name || `unknown(${catId})`
-    }
-    console.log(`\n📂 分类 [${tagName}] (id: ${catId}) 开始获取接口...`)
+    // let tagName = 'unknown'
+    // if (this.openApiDoc?.tags) {
+    //   const tag = this.openApiDoc.tags.find(
+    //     t => this.getTagId(t.name) === catId,
+    //   )
+    //   tagName = tag?.name || `unknown(${catId})`
+    // }
 
     const methods = [
       'get',
@@ -583,7 +572,6 @@ export class ApifoxToYApiData {
           // 去重：基于 path + method
           const key = `${method.toUpperCase()}:${path}`
           if (seenKeys.has(key)) {
-            console.log(`  ⚠️ 跳过重复接口: ${key}`)
             continue
           }
           seenKeys.add(key)
