@@ -81,14 +81,15 @@ interface OpenAPIResponse {
 }
 
 interface OpenAPIOperation {
-  summary: string
-  description?: string
-  deprecated?: boolean
-  tags?: string[]
-  parameters?: OpenAPIParameter[]
-  requestBody?: OpenAPIRequestBody
-  responses?: Record<string, OpenAPIResponse>
-  security?: any[]
+  'summary': string
+  'description'?: string
+  'deprecated'?: boolean
+  'tags'?: string[]
+  'x-apifox-folder'?: string
+  'parameters'?: OpenAPIParameter[]
+  'requestBody'?: OpenAPIRequestBody
+  'responses'?: Record<string, OpenAPIResponse>
+  'security'?: any[]
 }
 
 interface OpenAPIPath {
@@ -354,6 +355,22 @@ export class ApifoxToYApiData {
     return this.interfaceIdCounter
   }
 
+  /**
+   * 获取接口所属的目录名称
+   * Apifox 优先使用 x-apifox-folder 字段，其次才用 tags[0]
+   */
+  private getOperationFolder(operation: OpenAPIOperation): string {
+    // 优先使用 x-apifox-folder
+    if (operation['x-apifox-folder']) {
+      return operation['x-apifox-folder']
+    }
+    // 其次使用 tags[0]
+    if (operation.tags && operation.tags.length > 0) {
+      return operation.tags[0]
+    }
+    return 'default'
+  }
+
   private convertOperationToInterface(
     path: string,
     method: string,
@@ -387,6 +404,14 @@ export class ApifoxToYApiData {
 
     const responseInfo = this.convertResponse(operation.responses)
 
+    // 获取接口所属目录：优先使用 x-apifox-folder，其次用 tags
+    const folderName = this.getOperationFolder(operation)
+    const interfaceTags = operation.tags?.length
+      ? operation.tags
+      : folderName !== 'default'
+      ? [folderName]
+      : []
+
     return {
       _id: this.generateInterfaceId(),
       _category: {
@@ -406,7 +431,7 @@ export class ApifoxToYApiData {
       method: method.toUpperCase() as Method,
       project_id: this.options.projectId,
       catid: categoryId,
-      tag: operation.tags || [],
+      tag: interfaceTags,
       req_headers: reqHeaders,
       req_params: pathParams,
       req_query: queryParams,
@@ -433,7 +458,7 @@ export class ApifoxToYApiData {
           excludedByTags: [],
         },
         options: {
-          includeApifoxExtensionProperties: false,
+          includeApifoxExtensionProperties: true,
           addFoldersToTags: this.options.addFoldersToTags ?? true,
         },
         oasVersion: this.options.oasVersion ?? '3.0',
@@ -477,12 +502,41 @@ export class ApifoxToYApiData {
     return Math.abs(hash)
   }
 
+  /**
+   * 从 OpenAPI tags 中获取目录对应的 tag
+   * 如果 x-apifox-folder 在 tags 中存在，则返回对应的 tag；否则返回 x-apifox-folder 本身
+   */
+  private getMatchingTag(xApifoxFolder: string): string | null {
+    if (!this.openApiDoc?.tags) return null
+    // 先精确匹配
+    const exactMatch = this.openApiDoc.tags.find(
+      tag => tag.name === xApifoxFolder,
+    )
+    if (exactMatch) return exactMatch.name
+    // 如果 addFoldersToTags=true，可能目录名被添加到 tag 描述或其他地方
+    // 或者 tag.name 本身就包含了目录路径
+    return null
+  }
+
   getCats(cats: CategoryConfig): number[] {
     const categoryIds = getFilteredCat(cats, [], true)
     if (categoryIds.length === 0 || categoryIds.includes(0)) {
-      if (!this.openApiDoc?.tags) return []
-      return this.openApiDoc.tags.map(tag => this.getTagId(tag.name))
+      if (!this.openApiDoc?.tags) {
+        console.log(`📁 getCats: 返回空数组 (openApiDoc.tags 不存在)`)
+        return []
+      }
+      const tagIds = this.openApiDoc.tags.map(tag => this.getTagId(tag.name))
+      console.log(`📁 getCats (id=0 获取全部): 返回 ${tagIds.length} 个分类`)
+      console.log(
+        `   Tags: ${this.openApiDoc.tags.map(t => t.name).join(', ')}`,
+      )
+      return tagIds
     }
+    console.log(
+      `📁 getCats: 返回 ${categoryIds.length} 个分类: ${categoryIds.join(
+        ', ',
+      )}`,
+    )
     return categoryIds
   }
 
@@ -493,12 +547,18 @@ export class ApifoxToYApiData {
 
     const catId = syntheticalConfig.id as number
     const interfaces: InterfaceList = []
+    // 用于去重：基于 path + method
+    const seenKeys = new Set<string>()
 
-    // let categoryName = ''
-    // if (this.openApiDoc.tags) {
-    //   const tag = this.openApiDoc.tags.find(t => this.getTagId(t.name) === catId)
-    //   categoryName = tag?.name || ''
-    // }
+    // 调试：获取 tag 名称
+    let tagName = 'unknown'
+    if (this.openApiDoc?.tags) {
+      const tag = this.openApiDoc.tags.find(
+        t => this.getTagId(t.name) === catId,
+      )
+      tagName = tag?.name || `unknown(${catId})`
+    }
+    console.log(`\n📂 分类 [${tagName}] (id: ${catId}) 开始获取接口...`)
 
     const methods = [
       'get',
@@ -515,23 +575,30 @@ export class ApifoxToYApiData {
         const operation = pathItem[method]
         if (!operation) continue
 
-        const operationTags = operation.tags || []
-        if (operationTags.length === 0) {
-          operationTags.push('default')
-        }
+        // 获取接口的目录信息：优先使用 x-apifox-folder
+        const xApifoxFolder = this.getOperationFolder(operation)
+        const tagId = this.getTagId(xApifoxFolder)
 
-        for (const tag of operationTags) {
-          const tagId = this.getTagId(tag)
-          if (tagId === catId) {
-            const interfaceInfo = this.convertOperationToInterface(
-              path,
-              method,
-              operation,
-              tag,
-              catId,
-            )
-            interfaces.push(interfaceInfo)
+        if (tagId === catId) {
+          // 去重：基于 path + method
+          const key = `${method.toUpperCase()}:${path}`
+          if (seenKeys.has(key)) {
+            console.log(`  ⚠️ 跳过重复接口: ${key}`)
+            continue
           }
+          seenKeys.add(key)
+
+          // 根据实际的目录名称来确定分类
+          const categoryTag = xApifoxFolder
+
+          const interfaceInfo = this.convertOperationToInterface(
+            path,
+            method,
+            operation,
+            categoryTag,
+            catId,
+          )
+          interfaces.push(interfaceInfo)
         }
       }
     }
