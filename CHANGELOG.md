@@ -1,5 +1,11 @@
 # 更新日志
 
+### [4.2.1](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.2.0...v4.2.1) (2026-04-15)
+
+### 修复
+
+- 修正 apifox 接口数据获取时没有去重的问题 ([2e8e1a6](https://github.com/kekexunxun/yapi-to-typescript/commit/2e8e1a6d9d7e547b706e39c1146ebc7e8fb780ca))
+
 ## [4.2.0](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.1.3...v4.2.0) (2026-03-16)
 
 ### [4.1.3](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.1.2...v4.1.3) (2024-12-31)
