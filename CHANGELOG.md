@@ -1,5 +1,11 @@
 # 更新日志
 
+### [4.2.3](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.2.2...v4.2.3) (2026-07-13)
+
+### 修复
+
+- 修正寻找 schema 会无限循环的问题 ([3405c25](https://github.com/kekexunxun/yapi-to-typescript/commit/3405c257b18e4d47c9d9639f8aab9e6e36f29845))
+
 ### [4.2.2](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.2.1...v4.2.2) (2026-04-15)
 
 ### 修复
