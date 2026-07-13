@@ -303,13 +303,21 @@ export class ApifoxToYApiData {
     }
   }
 
-  private normalizeSchema(schema: OpenAPISchema): OpenAPISchema {
+  private normalizeSchema(
+    schema: OpenAPISchema,
+    visited: Set<string> = new Set(),
+  ): OpenAPISchema {
     const result: OpenAPISchema = { ...schema }
 
     if (schema.$ref) {
+      if (visited.has(schema.$ref)) {
+        // 循环引用，直接返回空对象避免无限递归
+        return { type: 'object' }
+      }
+      visited.add(schema.$ref)
       const resolved = this.resolveRef(schema.$ref)
       if (resolved) {
-        return this.normalizeSchema(resolved)
+        return this.normalizeSchema(resolved, new Set(visited))
       }
     }
 
@@ -317,13 +325,13 @@ export class ApifoxToYApiData {
       result.properties = {}
       for (const [key, value] of Object.entries(schema.properties)) {
         if (value) {
-          result.properties[key] = this.normalizeSchema(value)
+          result.properties[key] = this.normalizeSchema(value, new Set(visited))
         }
       }
     }
 
     if (schema.items) {
-      result.items = this.normalizeSchema(schema.items)
+      result.items = this.normalizeSchema(schema.items, new Set(visited))
     }
 
     delete result.$ref
