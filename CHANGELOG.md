@@ -1,5 +1,17 @@
 # 更新日志
 
+## [4.3.0](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.2.3...v4.3.0) (2026-10-08)
+
+### 特性
+
+- 在 React Hooks 功能没启用时去除 Request 导出 ([d06bf38](https://github.com/kekexunxun/yapi-to-typescript/commit/d06bf38e0475e4f231a48b2eba3ec5cb312438ff))
+- 支持本地json模式 ([45f5998](https://github.com/kekexunxun/yapi-to-typescript/commit/45f5998bb83b9a47daa8af9983e40187140b72c2))
+- 模块拆分实现 ([fe0d352](https://github.com/kekexunxun/yapi-to-typescript/commit/fe0d352cc82cf1f72957399f70143f2ae8ce3f8c))
+
+### 修复
+
+- 弃用yarn改用npm ([3167622](https://github.com/kekexunxun/yapi-to-typescript/commit/31676228213a918f59873ecad6b99c6bbbbd0eaa))
+
 ### [4.2.3](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.2.2...v4.2.3) (2026-07-13)
 
 ### 修复
