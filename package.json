@@ -1,6 +1,6 @@
 {
   "name": "yapi-apifox-to-typescript",
-  "version": "4.3.0",
+  "version": "5.0.0",
   "description": "根据 YApi 或 Apifox 的接口定义生成 TypeScript/JavaScript 的接口类型及其请求函数代码。",
   "keywords": [
     "yapi",
@@ -35,6 +35,7 @@
   "scripts": {
     "build": "vite build --mode esm && vite build --mode cjs",
     "release": "commit-and-tag-version -a && npm run build && git push --follow-tags origin master && npm publish",
+    "releaseMajor": "commit-and-tag-version -a --release-as major && npm run build && git push --follow-tags origin master && npm publish",
     "releaseBeta": "commit-and-tag-version -a --release-as patch --prerelease beta && npm run build && git push --follow-tags origin master && npm publish --tag next",
     "testApi": "ts-node src/cli.ts",
     "prepare": "husky"

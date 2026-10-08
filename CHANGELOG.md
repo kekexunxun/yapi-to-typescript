@@ -1,5 +1,7 @@
 # 更新日志
 
+## [5.0.0](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.3.0...v5.0.0) (2026-10-08)
+
 ## [4.3.0](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.2.3...v4.3.0) (2026-10-08)
 
 ### 特性
