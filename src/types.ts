@@ -555,6 +555,21 @@ export interface SharedConfig {
   ): string
 
   /**
+   * 是否按接口 path 首段拆分输出文件。
+   *
+   * 开启后，输出结构如下（以 `outputFilePath = 'src/api/index.ts'` 为例）：
+   *
+   * - `src/api/modules/system.ts`
+   * - `src/api/modules/order.ts`
+   * - `src/api/index.ts` — barrel 文件，形如 `export * from './modules/system'`
+   *
+   * 关闭时保持原有单文件行为。
+   *
+   * @default false
+   */
+  splitByModule?: boolean
+
+  /**
    * 是否需要忽略输出devUrl, mockUrl, prodUrl
    * 开启该选项后将不会输出与URL相关内容
    * @default false
@@ -650,9 +665,11 @@ export interface ServerConfig extends SharedConfig {
   /**
    * 服务地址。若服务类型为 `yapi`，此处填其首页地址；若服务类型为 `swagger`，此处填其 json 地址；
    * 若服务类型为 `local`，此处填本地 OpenAPI/Swagger JSON 文件路径（绝对路径或相对于当前工作目录的相对路径）。
+   * 当 `local` 模式下该路径指向一个目录时，会读取目录内所有 `.json` 文件并合并其 `paths` 与 `components.schemas` 作为数据源。
    *
    * @example 'http://yapi.foo.bar'
    * @example './openapi.json'
+   * @example './apis/'
    */
   serverUrl: string
 

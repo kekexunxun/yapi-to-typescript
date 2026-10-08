@@ -67,6 +67,12 @@ export class Generator {
 
   private disposes: Array<() => any> = []
 
+  /**
+   * splitByModule 模式下，记录需要写 barrel 文件的原始输出路径（绝对路径）。
+   * key = outputFilePath 原址， value = true 表示该路径需要写 barrel。
+   */
+  private barrelOutputMap = new Map<string, true>()
+
   constructor(
     config: Config,
     private options: { cwd: string } = { cwd: process.cwd() },
@@ -235,7 +241,7 @@ export class Generator {
                               code: string
                             }>
                           >(async interfaceInfo => {
-                            const outputFilePath = path.resolve(
+                            const baseOutputFilePath = path.resolve(
                               this.options.cwd,
                               typeof syntheticalConfig.outputFilePath ===
                                 'function'
@@ -245,6 +251,20 @@ export class Generator {
                                   )
                                 : syntheticalConfig.outputFilePath!,
                             )
+                            // splitByModule: 按接口 path 首段将输出重定向到 modules/{segment}.ts
+                            let outputFilePath = baseOutputFilePath
+                            if (syntheticalConfig.splitByModule) {
+                              const moduleName =
+                                interfaceInfo.path
+                                  .split('/')
+                                  .filter(Boolean)[0] || 'default'
+                              outputFilePath = path.join(
+                                path.dirname(baseOutputFilePath),
+                                'modules',
+                                `${moduleName}.ts`,
+                              )
+                              this.barrelOutputMap.set(baseOutputFilePath, true)
+                            }
                             const categoryUID = `_${serverIndex}_${projectIndex}_${categoryIndex}_${categoryIndex2}`
                             const code = await this.generateInterfaceCode(
                               syntheticalConfig,
@@ -374,7 +394,7 @@ export class Generator {
   }
 
   async write(outputFileList: OutputFileList) {
-    return Promise.all(
+    await Promise.all(
       Object.keys(outputFileList).map(async outputFilePath => {
         let {
           content,
@@ -592,6 +612,43 @@ export class Generator {
         }
       }),
     )
+
+    // splitByModule: 在所有 module 文件写入完毕后，向原始 outputFilePath 写 barrel 文件
+    if (this.barrelOutputMap.size > 0) {
+      const prettier = await getPrettier(this.options.cwd)
+      const barrelPaths = Array.from(this.barrelOutputMap.keys())
+      for (let bi = 0; bi < barrelPaths.length; bi++) {
+        const barrelPath = barrelPaths[bi]
+        const modulesDir = path.join(path.dirname(barrelPath), 'modules')
+        const moduleExports = Object.keys(outputFileList)
+          .filter(f => f.startsWith(modulesDir))
+          .map(f => `./modules/${path.basename(f, path.extname(f))}`)
+          .sort()
+
+        if (moduleExports.length === 0) continue
+
+        const rawBarrelContent = dedent`
+          /* tslint:disable */
+          /* eslint-disable */
+
+          /* 该文件由 yapi-apifox-to-typescript 自动生成，请勿直接修改！！！ */
+
+          ${moduleExports.map(m => `export * from ${JSON.stringify(m)}`).join('\n')}
+        `
+        const prettyBarrelContent = await prettier.format(rawBarrelContent, {
+          ...(await getCachedPrettierOptions()),
+          filepath: barrelPath,
+        })
+        await fs.outputFile(
+          barrelPath,
+          `${dedent`
+            /* prettier-ignore-start */
+            ${prettyBarrelContent}
+            /* prettier-ignore-end */
+          `}\n`,
+        )
+      }
+    }
   }
 
   async tsc(file: string) {

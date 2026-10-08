@@ -47,15 +47,56 @@ export class SwaggerToYApiServer {
         if (!(await fs.pathExists(absPath))) {
           throw new Error(`本地 OpenAPI/Swagger JSON 文件不存在: ${absPath}`)
         }
-        const raw = await fs.readFile(absPath, 'utf-8')
-        try {
-          this.swaggerJson = JSON.parse(raw)
-        } catch (err) {
-          throw new Error(
-            `解析本地 OpenAPI/Swagger JSON 失败: ${absPath}\n${
-              (err as Error).message
-            }`,
+        const stat = await fs.stat(absPath)
+        if (stat.isDirectory()) {
+          // 目录模式：读取并合并目录内所有 JSON 文件
+          const files = (await fs.readdir(absPath))
+            .filter(f => f.endsWith('.json'))
+            .sort()
+          if (files.length === 0) {
+            throw new Error(`目录中没有找到 JSON 文件: ${absPath}`)
+          }
+          const docs = await Promise.all(
+            files.map(async f => {
+              const raw = await fs.readFile(path.join(absPath, f), 'utf-8')
+              try {
+                return JSON.parse(raw)
+              } catch (err) {
+                throw new Error(
+                  `解析本地 OpenAPI/Swagger JSON 失败: ${path.join(absPath, f)}\n${
+                    (err as Error).message
+                  }`,
+                )
+              }
+            }),
           )
+          // 以第一个文件为骰架，合并 paths 和 components.schemas
+          this.swaggerJson = docs.reduce((acc, doc, i) => {
+            if (i === 0) return { ...doc }
+            return {
+              ...acc,
+              paths: { ...acc.paths, ...doc.paths },
+              components: {
+                ...acc.components,
+                schemas: {
+                  ...acc.components?.schemas,
+                  ...doc.components?.schemas,
+                },
+              },
+            }
+          }) as SwaggerType.Document
+        } else {
+          // 单文件模式
+          const raw = await fs.readFile(absPath, 'utf-8')
+          try {
+            this.swaggerJson = JSON.parse(raw)
+          } catch (err) {
+            throw new Error(
+              `解析本地 OpenAPI/Swagger JSON 失败: ${absPath}\n${
+                (err as Error).message
+              }`,
+            )
+          }
         }
       } else if (this.options.swaggerJsonUrl) {
         const res = await httpGet<SwaggerType.Document>(
