@@ -33,6 +33,9 @@
     "lib"
   ],
   "scripts": {
+    "audit": "npm audit --registry=https://registry.npmjs.org",
+    "audit:prod": "npm audit --omit=dev --registry=https://registry.npmjs.org",
+    "audit:signatures": "npm audit signatures --registry=https://registry.npmjs.org",
     "build": "haoma compile",
     "docs": "npm run docs:build && gh-pages --dist docs/dist --dest handbook",
     "docs:build": "dumi build",
@@ -104,5 +107,8 @@
   },
   "engines": {
     "node": ">=10.19.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   }
 }
