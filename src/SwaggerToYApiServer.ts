@@ -1,12 +1,11 @@
 import fs from 'fs-extra'
 import getAvailablePort from 'get-port'
 import http from 'http'
-import onExit from 'signal-exit'
+import { onExit } from 'signal-exit'
 import path from 'path'
 import url from 'url'
-import { AsyncReturnType } from 'vtils/types'
+import { AsyncReturnType, isEmpty } from './mini-ut'
 import { httpGet } from './utils'
-import { isEmpty } from 'vtils'
 import { swaggerJsonToYApiData } from './swaggerJsonToYApiData'
 import { OpenAPIV2 as SwaggerType } from 'openapi-types'
 
@@ -81,7 +80,7 @@ export class SwaggerToYApiServer {
 
   async start(): Promise<string> {
     const yapiData = await this.getYApiData()
-    // eslint-disable-next-line no-async-promise-executor
+
     await new Promise<void>(async resolve => {
       this.httpServer = http
         .createServer(async (req, res) => {
@@ -119,7 +118,9 @@ export class SwaggerToYApiServer {
           }
         })
         .listen(await this.getPort(), '127.0.0.1', () => {
-          onExit(() => this.stop())
+          onExit(() => {
+            void this.stop()
+          })
           resolve()
         })
     })

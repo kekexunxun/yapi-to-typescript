@@ -15,16 +15,8 @@
     "lib": ["ESNext", "DOM"],
     "paths": {
       "yapi-apifox-to-typescript": ["./src/index.ts"]
-    },
-    "plugins": [
-      {
-        "name": "typescript-snapshots-plugin",
-        "snapshotCallIdentifiers": [
-          "toMatchSnapshot",
-          "toThrowErrorMatchingSnapshot",
-          "toMatchDiffSnapshot"
-        ]
-      }
-    ]
-  }
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "lib", "vite.config.mts"]
 }

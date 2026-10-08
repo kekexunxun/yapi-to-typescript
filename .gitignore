@@ -9,5 +9,3 @@ Thumbs.db
 /lib
 /coverage
 ytt.config.*
-.umi*
-docs/dist

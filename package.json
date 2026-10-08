@@ -33,80 +33,63 @@
     "lib"
   ],
   "scripts": {
-    "audit": "npm audit --registry=https://registry.npmjs.org",
-    "audit:prod": "npm audit --omit=dev --registry=https://registry.npmjs.org",
-    "audit:signatures": "npm audit signatures --registry=https://registry.npmjs.org",
-    "build": "haoma compile",
-    "docs": "npm run docs:build && gh-pages --dist docs/dist --dest handbook",
-    "docs:build": "dumi build",
-    "docs:dev": "dumi dev",
-    "release": "standard-version -a && npm run build && git push --follow-tags origin master && npm publish",
-    "releaseBeta": "standard-version -a --release-as patch --prerelease beta && npm run build && git push --follow-tags origin master && npm publish --tag next",
-    "testApi": "ts-node -T src/cli.ts"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+    "build": "vite build --mode esm && vite build --mode cjs",
+    "release": "commit-and-tag-version -a && npm run build && git push --follow-tags origin master && npm publish",
+    "releaseBeta": "commit-and-tag-version -a --release-as patch --prerelease beta && npm run build && git push --follow-tags origin master && npm publish --tag next",
+    "testApi": "ts-node src/cli.ts",
+    "prepare": "husky"
   },
   "lint-staged": {
-    "*.{css,less,scss,sass,html,htm,vue,yml,yaml,json,md}": [
-      "prettier --write"
-    ],
+    "*.{css,less,scss,sass,html,htm,vue,yml,yaml,json,md}": "prettier --write",
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
       "prettier --write"
     ]
   },
   "dependencies": {
-    "@babel/runtime": "^7.13.10",
-    "@types/json-schema": "^7.0.9",
-    "change-case": "^3.0.2",
-    "consola": "^2.3.0",
-    "dayjs": "^1.8.32",
-    "form-data": "^3.0.0",
-    "fs-extra": "^7.0.1",
-    "get-port": "^5.1.1",
-    "json-schema-to-typescript": "^10.1.4",
-    "json5": "^2.1.0",
-    "node-fetch": "^2",
-    "ora": "^3.4.0",
-    "prettier": "^2.7.1",
-    "prompts": "^2.0.4",
-    "proxy-agent": "^5.0.0",
-    "signal-exit": "^3.0.3",
-    "swagger-client": "3.18.4",
+    "@types/json-schema": "^7.0.15",
+    "axios": "^1.20.0",
+    "change-case": "^5.4.4",
+    "consola": "^3.4.2",
+    "dayjs": "^1.11.23",
+    "form-data": "^4.0.6",
+    "fs-extra": "^11.4.1",
+    "get-port": "^7.2.0",
+    "json-schema-to-typescript": "^16.0.0",
+    "json5": "^2.2.3",
+    "node-fetch": "^3.3.2",
+    "ora": "^9.4.1",
+    "prettier": "^3.9.9",
+    "prompts": "^2.4.2",
+    "signal-exit": "^4.1.0",
+    "swagger-client": "^3.38.2",
     "to-json-schema": "^0.2.5",
-    "ts-node": "^8.0.2",
-    "typescript": "^4.2.3",
-    "vtils": "^4.57.0",
-    "yargs": "^16.2.0"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "yargs": "^18.2.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "^5.0.4",
-    "@types/json5": "^0.0.30",
-    "@types/node": "^10.12.10",
-    "@types/node-fetch": "^2.6.2",
-    "@types/prompts": "^1.2.0",
-    "@types/react": "^16.9.2",
-    "@types/signal-exit": "^3.0.0",
-    "@types/swagger-schema-official": "^2.0.21",
-    "@types/to-json-schema": "^0.2.0",
-    "@types/yargs": "^16.0.1",
-    "axios": "^1.7.8",
-    "dumi": "^1.1.10",
-    "eslint": "^7",
-    "gh-pages": "^2.0.1",
-    "haoma": "^2.31.0",
-    "husky": "^4",
-    "lint-staged": "^10",
-    "openapi-types": "^7.0.1",
-    "standard-version": "^9.3.2",
-    "typedoc": "^0.14.2",
-    "typescript-snapshots-plugin": "^1.7.0"
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.20.5",
+    "@types/node-fetch": "^2.6.13",
+    "@types/prompts": "^2.4.9",
+    "@types/swagger-schema-official": "^2.0.25",
+    "@types/to-json-schema": "^0.2.4",
+    "@types/yargs": "^17.0.35",
+    "@typescript-eslint/eslint-plugin": "^8.71.1",
+    "@typescript-eslint/parser": "^8.71.1",
+    "commit-and-tag-version": "^13.2.1",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "openapi-types": "^12.1.3",
+    "vite": "^8.3.3",
+    "vite-plugin-dts": "^5.1.2"
   },
   "engines": {
-    "node": ">=10.19.0"
+    "node": ">=22.12.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"

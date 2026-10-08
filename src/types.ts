@@ -1,84 +1,16 @@
-import { AsyncOrSync, LiteralUnion, OmitStrict, OneOrMore } from 'vtils/types'
+import { AsyncOrSync, LiteralUnion, OmitStrict, OneOrMore } from './mini-ut'
 import { JSONSchema4, JSONSchema4TypeName } from 'json-schema'
 import { ParsedPath } from 'path'
 
-export interface ChangeCase {
-  /**
-   * @example
-   * changeCase.camelCase('test string') // => 'testString'
-   */
-  camelCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.constantCase('test string') // => 'TEST_STRING'
-   */
-  constantCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.dotCase('test string') // => 'test.string'
-   */
-  dotCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.headerCase('test string') // => 'Test-String'
-   */
-  headerCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.lowerCase('TEST STRING') // => 'test string'
-   */
-  lowerCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.lowerCaseFirst('TEST') // => 'tEST'
-   */
-  lowerCaseFirst: (value: string) => string
-  /**
-   * @example
-   * changeCase.paramCase('test string') // => 'test-string'
-   */
-  paramCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.pascalCase('test string') // => 'TestString'
-   */
-  pascalCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.pathCase('test string') // => 'test/string'
-   */
-  pathCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.sentenceCase('testString') // => 'Test string'
-   */
-  sentenceCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.snakeCase('test string') // => 'test_string'
-   */
-  snakeCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.swapCase('Test String') // => 'tEST sTRING'
-   */
-  swapCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.titleCase('a simple test') // => 'A Simple Test'
-   */
-  titleCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.upperCase('test string') // => 'TEST STRING'
-   */
-  upperCase: (value: string) => string
-  /**
-   * @example
-   * changeCase.upperCaseFirst('test') // => 'Test'
-   */
-  upperCaseFirst: (value: string) => string
-}
+/**
+ * 大小写转换工具集。
+ *
+ * 直接取 change-case 模块的命名空间类型，随依赖版本保持同步，
+ * 内置常用方法如：
+ * - changeCase.camelCase('test string') // => 'testString'
+ * - changeCase.pascalCase('test string') // => 'TestString'
+ */
+export type ChangeCase = typeof import('change-case')
 
 /** 请求方式 */
 export enum Method {
@@ -164,15 +96,15 @@ export enum ResponseBodyType {
 /** 查询字符串数组格式化方式 */
 export enum QueryStringArrayFormat {
   /** 示例: `a[]=b&a[]=c` */
-  'brackets' = 'brackets',
+  brackets = 'brackets',
   /** 示例: `a[0]=b&a[1]=c` */
-  'indices' = 'indices',
+  indices = 'indices',
   /** 示例: `a=b&a=c` */
-  'repeat' = 'repeat',
+  repeat = 'repeat',
   /** 示例: `a=b,c` */
-  'comma' = 'comma',
+  comma = 'comma',
   /** 示例: `a=["b","c"]` */
-  'json' = 'json',
+  json = 'json',
 }
 
 /** 接口定义 */
@@ -498,8 +430,7 @@ export interface SharedConfig {
    * @example 'src/api/index.ts'
    */
   outputFilePath?:
-    | string
-    | ((interfaceInfo: Interface, changeCase: ChangeCase) => string)
+    string | ((interfaceInfo: Interface, changeCase: ChangeCase) => string)
 
   /**
    * 请求函数文件路径。

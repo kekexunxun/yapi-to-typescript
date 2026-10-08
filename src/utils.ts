@@ -3,7 +3,6 @@ import JSON5 from 'json5'
 import nodeFetch from 'node-fetch'
 import path from 'path'
 import prettier from 'prettier'
-import ProxyAgent from 'proxy-agent'
 import toJsonSchema from 'to-json-schema'
 import {
   castArray,
@@ -17,7 +16,7 @@ import {
   run,
   traverse,
   uniq,
-} from 'vtils'
+} from './mini-ut'
 import {
   Category,
   CategoryConfig,
@@ -31,7 +30,7 @@ import {
   ResponseBodyType,
 } from './types'
 import { compile, Options } from 'json-schema-to-typescript'
-import { Defined, OneOrMore } from 'vtils/types'
+import { Defined, OneOrMore } from './mini-ut'
 import { FileData } from './helpers'
 import { JSONSchema4, JSONSchema4TypeName } from 'json-schema'
 import { URL } from 'url'
@@ -662,10 +661,11 @@ export async function httpGet<T>(
 
   const res = await nodeFetch(url, {
     method: 'GET',
-    agent: new ProxyAgent(),
+    // NOTE(proxy-agent): 已移除 proxy-agent 依赖，httpGet 直接请求；
+    // 后续如需支持内网/代理环境，先 `npm i proxy-agent`，再恢复：agent: new ProxyAgent()
   })
 
-  return res.json()
+  return (await res.json()) as T
 }
 
 /**

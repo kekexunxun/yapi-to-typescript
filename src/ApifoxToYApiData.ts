@@ -81,15 +81,15 @@ interface OpenAPIResponse {
 }
 
 interface OpenAPIOperation {
-  'summary': string
-  'description'?: string
-  'deprecated'?: boolean
-  'tags'?: string[]
+  summary: string
+  description?: string
+  deprecated?: boolean
+  tags?: string[]
   'x-apifox-folder'?: string
-  'parameters'?: OpenAPIParameter[]
-  'requestBody'?: OpenAPIRequestBody
-  'responses'?: Record<string, OpenAPIResponse>
-  'security'?: any[]
+  parameters?: OpenAPIParameter[]
+  requestBody?: OpenAPIRequestBody
+  responses?: Record<string, OpenAPIResponse>
+  security?: any[]
 }
 
 interface OpenAPIPath {
@@ -429,8 +429,8 @@ export class ApifoxToYApiData {
     const interfaceTags = operation.tags?.length
       ? operation.tags
       : folderName !== 'default'
-      ? [folderName]
-      : []
+        ? [folderName]
+        : []
 
     return {
       _id: this.generateInterfaceId(),
@@ -486,7 +486,7 @@ export class ApifoxToYApiData {
       },
       {
         headers: {
-          'Authorization': `Bearer ${this.options.token}`,
+          Authorization: `Bearer ${this.options.token}`,
           'X-Apifox-Api-Version': '2024-03-28',
           'Content-Type': 'application/json',
         },

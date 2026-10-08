@@ -16,7 +16,7 @@ import {
   omit,
   uniq,
   values,
-} from 'vtils'
+} from './mini-ut'
 import {
   CategoryList,
   CommentConfig,
@@ -193,13 +193,13 @@ export class Generator {
                           syntheticalConfig.serverType === 'apifox' &&
                           apifoxInstance
                         ) {
-                          interfaceList = await apifoxInstance.getInterfaceList(
-                            syntheticalConfig,
-                          )
+                          interfaceList =
+                            await apifoxInstance.getInterfaceList(
+                              syntheticalConfig,
+                            )
                         } else {
-                          interfaceList = await this.fetchInterfaceList(
-                            syntheticalConfig,
-                          )
+                          interfaceList =
+                            await this.fetchInterfaceList(syntheticalConfig)
                         }
                         interfaceList = interfaceList
                           .map(interfaceInfo => {
@@ -377,11 +377,10 @@ export class Generator {
     return Promise.all(
       Object.keys(outputFileList).map(async outputFilePath => {
         let {
-          // eslint-disable-next-line prefer-const
           content,
           requestFunctionFilePath,
           requestHookMakerFilePath,
-          // eslint-disable-next-line prefer-const
+
           syntheticalConfig,
         } = outputFileList[outputFilePath]
 
@@ -901,7 +900,7 @@ export class Generator {
       const extraComment: string = summary
         .filter(item => typeof item !== 'boolean' && !isEmpty(item.value))
         .map(item => {
-          const _item: Exclude<typeof summary[0], boolean> = item as any
+          const _item: Exclude<(typeof summary)[0], boolean> = item as any
           return `* @${_item.label} ${castArray(_item.value).join(', ')}`
         })
         .join('\n')
@@ -956,21 +955,23 @@ export class Generator {
                     ? ''
                     : `paramNames: ${paramNamesLiteral},`
                 }${
-              queryNames.length === 0 ? '' : `queryNames: ${queryNamesLiteral},`
-            }${
-              syntheticalConfig.queryStringArrayFormat
-                ? `queryStringArrayFormat: QueryStringArrayFormat.${syntheticalConfig.queryStringArrayFormat},`
-                : ''
-            }${
-              requestHeaders === '{}'
-                ? ''
-                : `requestHeaders: ${requestHeaders},`
-            }requestBodyType: RequestBodyType.${
-              extendedInterfaceInfo.method === Method.GET
-                ? RequestBodyType.query
-                : extendedInterfaceInfo.req_body_type /* istanbul ignore next */ ||
-                  RequestBodyType.none
-            },
+                  queryNames.length === 0
+                    ? ''
+                    : `queryNames: ${queryNamesLiteral},`
+                }${
+                  syntheticalConfig.queryStringArrayFormat
+                    ? `queryStringArrayFormat: QueryStringArrayFormat.${syntheticalConfig.queryStringArrayFormat},`
+                    : ''
+                }${
+                  requestHeaders === '{}'
+                    ? ''
+                    : `requestHeaders: ${requestHeaders},`
+                }requestBodyType: RequestBodyType.${
+                  extendedInterfaceInfo.method === Method.GET
+                    ? RequestBodyType.query
+                    : extendedInterfaceInfo.req_body_type /* istanbul ignore next */ ||
+                      RequestBodyType.none
+                },
           ${
             syntheticalConfig.ignoreUselessConfigVar
               ? ``

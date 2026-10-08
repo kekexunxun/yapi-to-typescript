@@ -2,13 +2,12 @@
 import * as TSNode from 'ts-node'
 import consola from 'consola'
 import fs from 'fs-extra'
-import ora from 'ora'
+import ora, { type Ora } from 'ora'
 import path from 'path'
 import prompt from 'prompts'
 import yargs from 'yargs'
 import { ConfigWithHooks, ServerConfig } from './types'
-import { dedent, wait } from 'vtils'
-import { Defined } from 'vtils/types'
+import { dedent, wait, Defined } from './mini-ut'
 import { Generator } from './Generator'
 
 TSNode.register({
@@ -162,7 +161,7 @@ export async function run(
     consola.success(`找到配置文件: ${configFile}`)
     let config: ConfigWithHooks | undefined
     let generator: Generator | undefined
-    let spinner: ora.Ora | undefined
+    let spinner: Ora | undefined
     try {
       config = require(configFile).default
       generator = new Generator(config!, { cwd })
@@ -196,7 +195,12 @@ export async function run(
 
 /* istanbul ignore next */
 if (require.main === module) {
-  const argv = yargs(process.argv).alias('c', 'config').argv
+  // 禁用 yargs 内置的 help/version 命令，避免其拦截 `help` 位置参数
+  const argv = yargs(process.argv)
+    .help(false)
+    .version(false)
+    .alias('c', 'config')
+    .parseSync()
   run(argv._[2] as any, {
     configFile: argv.config
       ? path.resolve(process.cwd(), argv.config as string)

@@ -1,2 +1,7 @@
-/** @type import('haoma').PrettierConfig */
-module.exports = require('haoma').getPrettierConfig()
+/** @type {import('prettier').Config} */
+module.exports = {
+  semi: false,
+  singleQuote: true,
+  trailingComma: 'all',
+  arrowParens: 'avoid',
+}
