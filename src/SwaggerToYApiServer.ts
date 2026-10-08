@@ -1,6 +1,8 @@
+import fs from 'fs-extra'
 import getAvailablePort from 'get-port'
 import http from 'http'
 import onExit from 'signal-exit'
+import path from 'path'
 import url from 'url'
 import { AsyncReturnType } from 'vtils/types'
 import { httpGet } from './utils'
@@ -9,7 +11,10 @@ import { swaggerJsonToYApiData } from './swaggerJsonToYApiData'
 import { OpenAPIV2 as SwaggerType } from 'openapi-types'
 
 export interface SwaggerToYApiServerOptions {
-  swaggerJsonUrl: string
+  /** 远程 Swagger/OpenAPI JSON 地址（serverType = 'swagger' 时使用） */
+  swaggerJsonUrl?: string
+  /** 本地 Swagger/OpenAPI JSON 文件路径（serverType = 'local' 时使用） */
+  swaggerJsonPath?: string
 }
 
 export class SwaggerToYApiServer {
@@ -38,10 +43,31 @@ export class SwaggerToYApiServer {
 
   async getSwaggerJson(): Promise<SwaggerType.Document> {
     if (isEmpty(this.swaggerJson)) {
-      const res = await httpGet<SwaggerType.Document>(
-        this.options.swaggerJsonUrl,
-      )
-      this.swaggerJson = res
+      if (this.options.swaggerJsonPath) {
+        const absPath = path.resolve(this.options.swaggerJsonPath)
+        if (!(await fs.pathExists(absPath))) {
+          throw new Error(`本地 OpenAPI/Swagger JSON 文件不存在: ${absPath}`)
+        }
+        const raw = await fs.readFile(absPath, 'utf-8')
+        try {
+          this.swaggerJson = JSON.parse(raw)
+        } catch (err) {
+          throw new Error(
+            `解析本地 OpenAPI/Swagger JSON 失败: ${absPath}\n${
+              (err as Error).message
+            }`,
+          )
+        }
+      } else if (this.options.swaggerJsonUrl) {
+        const res = await httpGet<SwaggerType.Document>(
+          this.options.swaggerJsonUrl,
+        )
+        this.swaggerJson = res
+      } else {
+        throw new Error(
+          'SwaggerToYApiServer: 必须提供 swaggerJsonUrl 或 swaggerJsonPath',
+        )
+      }
     }
     return this.swaggerJson
   }

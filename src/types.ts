@@ -717,19 +717,22 @@ export interface ProjectConfig extends SharedConfig {
  */
 export interface ServerConfig extends SharedConfig {
   /**
-   * 服务地址。若服务类型为 `yapi`，此处填其首页地址；若服务类型为 `swagger`，此处填其 json 地址。
+   * 服务地址。若服务类型为 `yapi`，此处填其首页地址；若服务类型为 `swagger`，此处填其 json 地址；
+   * 若服务类型为 `local`，此处填本地 OpenAPI/Swagger JSON 文件路径（绝对路径或相对于当前工作目录的相对路径）。
    *
    * @example 'http://yapi.foo.bar'
+   * @example './openapi.json'
    */
   serverUrl: string
 
   /**
    * 服务类型。
-   * 当serverType为Apifox时，填写的serverUrl无效
+   * 当 serverType 为 `apifox` 时，填写的 serverUrl 无效。
+   * 当 serverType 为 `local` 时，serverUrl 作为本地 JSON 文件路径使用。
    *
    * @default 'yapi'
    */
-  serverType?: 'yapi' | 'swagger' | 'apifox'
+  serverType?: 'yapi' | 'swagger' | 'apifox' | 'local'
 
   /**
    * 项目列表。

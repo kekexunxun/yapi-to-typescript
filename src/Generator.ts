@@ -79,10 +79,16 @@ export class Generator {
     this.config = await Promise.all(
       // config 可能是对象或数组，统一为数组
       this.config.map(async item => {
-        if (item.serverType === 'swagger') {
-          const swaggerToYApiServer = new SwaggerToYApiServer({
-            swaggerJsonUrl: item.serverUrl,
-          })
+        if (item.serverType === 'swagger' || item.serverType === 'local') {
+          const swaggerToYApiServer = new SwaggerToYApiServer(
+            item.serverType === 'local'
+              ? {
+                  swaggerJsonPath: path.isAbsolute(item.serverUrl || '')
+                    ? item.serverUrl
+                    : path.resolve(this.options.cwd, item.serverUrl || ''),
+                }
+              : { swaggerJsonUrl: item.serverUrl },
+          )
           item.serverUrl = await swaggerToYApiServer.start()
           this.disposes.push(() => swaggerToYApiServer.stop())
         }
@@ -814,8 +820,9 @@ export class Generator {
         extraTags,
       } = {
         ...syntheticalConfig.comment,
-        // Swagger 时总是禁用标签、更新时间、链接
-        ...(syntheticalConfig.serverType === 'swagger'
+        // Swagger / 本地 OpenAPI 时总是禁用标签、更新时间、链接
+        ...(syntheticalConfig.serverType === 'swagger' ||
+        syntheticalConfig.serverType === 'local'
           ? {
               tag: false,
               updateTime: false,
