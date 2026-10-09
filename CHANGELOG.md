@@ -1,5 +1,11 @@
 # 更新日志
 
+## [5.0.1](https://github.com/kekexunxun/yapi-to-typescript/compare/v5.0.0...v5.0.1) (2026-10-09)
+
+### 修复
+
+- 修正文件生成以及本地模式优化 ([d292362](https://github.com/kekexunxun/yapi-to-typescript/commit/d29236204694f0f9bc438b5758de9ae5ec258769))
+
 ## [5.0.0](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.3.0...v5.0.0) (2026-10-08)
 
 ## [4.3.0](https://github.com/kekexunxun/yapi-to-typescript/compare/v4.2.3...v4.3.0) (2026-10-08)
