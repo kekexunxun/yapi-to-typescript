@@ -113,7 +113,18 @@ export class Generator {
 
     await Promise.all(
       this.config.map(async (serverConfig, serverIndex) => {
-        const projects = serverConfig.projects.reduce<ProjectConfig[]>(
+        // swagger / local 模式的数据源是本地(或远程)的 OpenAPI/Swagger JSON，
+        // 由内置 mock 服务模拟 YApi，token 不参与鉴权，
+        // 因此 projects 可省略，缺省时默认生成全部分类（id: 0）的接口。
+        const sourceProjects: ProjectConfig[] = serverConfig.projects?.length
+          ? serverConfig.projects
+          : serverConfig.serverType === 'swagger' ||
+              serverConfig.serverType === 'local'
+            ? [{ token: 'local', categories: [{ id: 0 }] }]
+            : throwError(
+                `projects is required when serverType is ${serverConfig.serverType || 'yapi'}`,
+              )
+        const projects = sourceProjects.reduce<ProjectConfig[]>(
           (projects, project) => {
             projects.push(
               ...castArray(project.token).map(token => ({
@@ -592,11 +603,9 @@ export class Generator {
           ...(await getCachedPrettierOptions()),
           filepath: outputFilePath,
         })
-        const outputContent = `${dedent`
-          /* prettier-ignore-start */
-          ${prettyOutputContent}
-          /* prettier-ignore-end */
-        `}\n`
+        // 注意：prettier 产物是多行且顶格的文本，不能放进带缩进的模板 + dedent，
+        // 否则最短公共缩进会被算成 0，导致首尾标记行残留模板缩进。
+        const outputContent = `/* prettier-ignore-start */\n${prettyOutputContent}\n/* prettier-ignore-end */\n`
         await fs.outputFile(outputFilePath, outputContent)
 
         // 如果要生成 JavaScript 代码，
@@ -627,25 +636,22 @@ export class Generator {
 
         if (moduleExports.length === 0) continue
 
-        const rawBarrelContent = dedent`
-          /* tslint:disable */
-          /* eslint-disable */
-
-          /* 该文件由 yapi-apifox-to-typescript 自动生成，请勿直接修改！！！ */
-
-          ${moduleExports.map(m => `export * from ${JSON.stringify(m)}`).join('\n')}
-        `
+        // 同上：多行的 moduleExports 不能内插进带缩进的 dedent 模板，直接拼接
+        const rawBarrelContent = [
+          '/* tslint:disable */',
+          '/* eslint-disable */',
+          '',
+          '/* 该文件由 yapi-apifox-to-typescript 自动生成，请勿直接修改！！！ */',
+          '',
+          ...moduleExports.map(m => `export * from ${JSON.stringify(m)}`),
+        ].join('\n')
         const prettyBarrelContent = await prettier.format(rawBarrelContent, {
           ...(await getCachedPrettierOptions()),
           filepath: barrelPath,
         })
         await fs.outputFile(
           barrelPath,
-          `${dedent`
-            /* prettier-ignore-start */
-            ${prettyBarrelContent}
-            /* prettier-ignore-end */
-          `}\n`,
+          `/* prettier-ignore-start */\n${prettyBarrelContent}\n/* prettier-ignore-end */\n`,
         )
       }
     }

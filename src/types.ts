@@ -684,15 +684,18 @@ export interface ServerConfig extends SharedConfig {
 
   /**
    * 项目列表。
+   *
+   * 当 serverType 为 `swagger` 或 `local` 时可省略，
+   * 缺省时默认使用单个虚拟项目（token 不参与鉴权）并生成全部分类的接口。
    */
-  projects: ProjectConfig[]
+  projects?: ProjectConfig[]
 }
 
 /** 混合的配置。 */
 export type SyntheticalConfig = Partial<
   ServerConfig &
-    ServerConfig['projects'][0] &
-    ServerConfig['projects'][0]['categories'][0] & {
+    ProjectConfig &
+    ProjectConfig['categories'][0] & {
       mockUrl: string
       devUrl: string
       prodUrl: string
