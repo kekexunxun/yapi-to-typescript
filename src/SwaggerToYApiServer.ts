@@ -70,12 +70,23 @@ export class SwaggerToYApiServer {
               }
             }),
           )
-          // 以第一个文件为骰架，合并 paths 和 components.schemas
+          // 以第一个文件为骨架，合并 paths、components.schemas 以及根级 tags。
+          // 根级 tags 必须一起合并并按 name 去重：swaggerJsonToYApiData.handleSwagger
+          // 只在接口 tag 命中根 tags 时才赋予 catname，否则接口会被下游按分类过滤丢弃，
+          // 表现为目录模式下只产出首个 JSON 对应的那一份模块文件。
           this.swaggerJson = docs.reduce((acc, doc, i) => {
             if (i === 0) return { ...doc }
+            const accTags = Array.isArray(acc.tags) ? acc.tags : []
+            const docTags = Array.isArray(doc.tags) ? doc.tags : []
+            const seen = new Set(accTags.map((t: any) => t?.name))
+            const mergedTags = [
+              ...accTags,
+              ...docTags.filter((t: any) => t?.name && !seen.has(t.name)),
+            ]
             return {
               ...acc,
               paths: { ...acc.paths, ...doc.paths },
+              tags: mergedTags,
               components: {
                 ...acc.components,
                 schemas: {
