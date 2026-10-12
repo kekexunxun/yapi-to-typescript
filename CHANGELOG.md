@@ -1,5 +1,11 @@
 # 更新日志
 
+## [5.0.2](https://github.com/kekexunxun/yapi-to-typescript/compare/v5.0.1...v5.0.2) (2026-10-12)
+
+### 修复
+
+- 修正多文件夹下代码生成失败的问题 ([e870031](https://github.com/kekexunxun/yapi-to-typescript/commit/e870031198aeb73e4f5fa13958e3f0c8ab1f0ffc))
+
 ## [5.0.1](https://github.com/kekexunxun/yapi-to-typescript/compare/v5.0.0...v5.0.1) (2026-10-09)
 
 ### 修复
