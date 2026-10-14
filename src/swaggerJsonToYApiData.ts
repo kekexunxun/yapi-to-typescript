@@ -20,33 +20,61 @@ function handlePath(path) {
   return path
 }
 
+/** OpenAPI 3.x 媒体类型的优先级，用于从 content 中挑选请求/响应体 */
+const PREFERRED_MEDIA_TYPES = [
+  'application/json',
+  'application/hal+json',
+  'application/problem+json',
+  'application/geo+json',
+  'text/json',
+  '*/*',
+]
+
+/**
+ * 从 content 映射中挑选优先级最高的媒体类型对应的内容对象。
+ *
+ * @param content OpenAPI 3.x 的 content 映射
+ * @param jsonOnly 是否只接受 JSON 类的媒体类型（请求体场景，保持与原有行为一致）
+ */
+function pickContentByMediaType(content, jsonOnly = false) {
+  if (!content || typeof content !== 'object') return null
+
+  const mediaTypes = Object.keys(content).filter(type => {
+    const value = content[type]
+    return value && typeof value === 'object'
+  })
+  const candidates = jsonOnly
+    ? mediaTypes.filter(
+        type => type === '*/*' || type.includes('json') || type.includes('*'),
+      )
+    : mediaTypes
+  if (!candidates.length) return null
+
+  const matched =
+    PREFERRED_MEDIA_TYPES.find(type => candidates.includes(type)) ||
+    candidates.find(type => type.includes('json')) ||
+    candidates[0]
+
+  return content[matched]
+}
+
+/** 兼容 Swagger 2.0 的 schema 与 OpenAPI 3.x 的 content，取出其中的 JSONSchema */
+function getJsonSchemaFromContent(target, jsonOnly = false) {
+  if (!target || typeof target !== 'object') return null
+  if (target.schema) return target.schema
+
+  const content = pickContentByMediaType(target.content, jsonOnly)
+  return content && content.schema ? content.schema : null
+}
+
 function openapi2swagger(data) {
   data.swagger = '2.0'
   each(data.paths, apis => {
     each(apis, api => {
       each(api.responses, res => {
-        if (
-          res.content &&
-          res.content['application/json'] &&
-          typeof res.content['application/json'] === 'object'
-        ) {
-          Object.assign(res, res.content['application/json'])
-          delete res.content
-        }
-        if (
-          res.content &&
-          res.content['application/hal+json'] &&
-          typeof res.content['application/hal+json'] === 'object'
-        ) {
-          Object.assign(res, res.content['application/hal+json'])
-          delete res.content
-        }
-        if (
-          res.content &&
-          res.content['*/*'] &&
-          typeof res.content['*/*'] === 'object'
-        ) {
-          Object.assign(res, res.content['*/*'])
+        const content = pickContentByMediaType(res && res.content)
+        if (content) {
+          Object.assign(res, content)
           delete res.content
         }
       })
@@ -57,11 +85,11 @@ function openapi2swagger(data) {
           name: 'body',
           in: 'body',
         }
-        try {
-          body.schema = api.requestBody.content['application/json'].schema
-        } catch (e) {
-          body.schema = {}
-        }
+        const requestBodyContent = pickContentByMediaType(
+          api.requestBody.content,
+          true,
+        )
+        body.schema = (requestBodyContent && requestBodyContent.schema) || {}
 
         api.parameters.push(body)
       }
@@ -304,12 +332,61 @@ function isJson(json) {
   }
 }
 
+/**
+ * 断开 JSONSchema 中的循环引用（如树形结构自引用），避免 JSON.stringify 抛错。
+ * swagger-client 解析 $ref 后会把引用展开成共享对象，其中指向祖先的引用即为循环。
+ */
+function disconnectCycles(node, ancestors = new Set()) {
+  if (!node || typeof node !== 'object') return node
+  if (ancestors.has(node)) {
+    return { type: 'object', description: '存在循环引用，已截断' }
+  }
+  ancestors.add(node)
+
+  let result
+  if (Array.isArray(node)) {
+    result = node.map(item => disconnectCycles(item, ancestors))
+  } else {
+    result = {}
+    Object.keys(node).forEach(key => {
+      // $$ref 是 swagger-client 解析 $ref 后留下的标记，对类型生成无意义
+      if (key === '$$ref') return
+      result[key] = disconnectCycles(node[key], ancestors)
+    })
+  }
+  ancestors.delete(node)
+
+  return result
+}
+
+/** 序列化 JSONSchema，遇到循环引用时自动断开，保证不会因抛错而丢失整个接口 */
+function stringifyJsonSchema(schema) {
+  try {
+    // 顺手剔除 swagger-client 留下的 $$ref 标记
+    return JSON.stringify(
+      schema,
+      (key, value) => (key === '$$ref' ? undefined : value),
+      2,
+    )
+  } catch (e) {
+    return JSON.stringify(disconnectCycles(schema), null, 2)
+  }
+}
+
 function handleBodyPamras(data, api) {
-  api.req_body_other = JSON.stringify(data, null, 2)
+  api.req_body_other = stringifyJsonSchema(data)
   if (isJson(api.req_body_other)) {
     api.req_body_type = 'json'
     api.req_body_is_json_schema = true
   }
+}
+
+/** 状态码的取值优先级：200 > 其他 2xx > default > 其他 */
+function responseCodeWeight(code) {
+  if (code === '200') return 0
+  if (/^2\d\d$/.test(code)) return 1
+  if (code === 'default') return 2
+  return 3
 }
 
 function handleResponse(api) {
@@ -318,27 +395,31 @@ function handleResponse(api) {
     return res_body
   }
   const codes = Object.keys(api)
-  let curCode
-  if (codes.length > 0) {
-    if (codes.indexOf('200') > -1) {
-      curCode = '200'
-    } else curCode = codes[0]
-
-    const res = api[curCode]
-    if (res && typeof res === 'object') {
-      if (res.schema) {
-        res_body = JSON.stringify(res.schema, null, 2)
-      } else if (res.description) {
-        res_body = res.description
-      }
-    } else if (typeof res === 'string') {
-      res_body = res
-    } else {
-      res_body = ''
-    }
-  } else {
-    res_body = ''
+  if (!codes.length) {
+    return res_body
   }
+
+  const sortedCodes = [...codes].sort(
+    (a, b) => responseCodeWeight(a) - responseCodeWeight(b),
+  )
+
+  // 优先取真正带有 schema 的状态码，避免 204 等仅有描述的响应导致类型退化为 any
+  for (const code of sortedCodes) {
+    const res = api[code]
+    const schema =
+      res && typeof res === 'object' ? getJsonSchemaFromContent(res) : null
+    if (schema) {
+      return stringifyJsonSchema(schema)
+    }
+  }
+
+  const res = api[sortedCodes[0]]
+  if (typeof res === 'string') {
+    res_body = res
+  } else if (res && typeof res === 'object' && res.description) {
+    res_body = res.description
+  }
+
   return res_body
 }
 

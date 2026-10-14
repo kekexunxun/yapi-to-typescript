@@ -244,8 +244,19 @@ export function jsonSchemaToJSTTJsonSchema(
     delete jsonSchema.maxItems
 
     if (jsonSchema.type === 'object') {
-      // 将 additionalProperties 设为 false
-      jsonSchema.additionalProperties = false
+      if (jsonSchema.properties) {
+        // 将 additionalProperties 设为 false
+        jsonSchema.additionalProperties = false
+      } else if (
+        jsonSchema.additionalProperties == null &&
+        !jsonSchema.oneOf &&
+        !jsonSchema.anyOf &&
+        !jsonSchema.allOf
+      ) {
+        // 未声明任何字段的 object 属于自由格式对象（接口文档常省略字段定义），
+        // 补上索引签名，避免生成形如 `interface X {}` 的空类型导致取值报错
+        jsonSchema.additionalProperties = true
+      }
     }
 
     // 删除 default，防止 json-schema-to-typescript 根据它推测类型

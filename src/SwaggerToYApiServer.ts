@@ -16,6 +16,56 @@ export interface SwaggerToYApiServerOptions {
   swaggerJsonPath?: string
 }
 
+/** OpenAPI 3.x 中 components 下的各个引用分区 */
+const COMPONENT_SECTIONS = [
+  'schemas',
+  'responses',
+  'parameters',
+  'examples',
+  'requestBodies',
+  'headers',
+  'securitySchemes',
+  'links',
+  'callbacks',
+]
+
+/** Swagger 2.0 中与 components 各分区对应的根级字段 */
+const SWAGGER_ROOT_SECTIONS = [
+  'definitions',
+  'responses',
+  'parameters',
+  'securityDefinitions',
+]
+
+/**
+ * 合并两份 OpenAPI/Swagger 文档的引用表。
+ *
+ * 必须合并 components 下的所有分区（而不仅是 schemas）：接口常以
+ * `$ref: '#/components/responses/Xxx'` 引用响应定义，一旦该分区丢失，
+ * 对应的 $ref 无法解析，生成的响应类型会退化为 any。
+ */
+function mergeReferenceSections(acc: any, doc: any) {
+  const merged: any = { ...acc }
+  for (const section of COMPONENT_SECTIONS) {
+    const docSection = doc.components?.[section]
+    if (docSection) {
+      merged.components = {
+        ...(merged.components || {}),
+        [section]: {
+          ...(merged.components?.[section] || {}),
+          ...docSection,
+        },
+      }
+    }
+  }
+  for (const section of SWAGGER_ROOT_SECTIONS) {
+    if (doc[section]) {
+      merged[section] = { ...(merged[section] || {}), ...doc[section] }
+    }
+  }
+  return merged
+}
+
 export class SwaggerToYApiServer {
   private port = 0
 
@@ -70,7 +120,7 @@ export class SwaggerToYApiServer {
               }
             }),
           )
-          // 以第一个文件为骨架，合并 paths、components.schemas 以及根级 tags。
+          // 以第一个文件为骨架，合并 paths、components 引用表以及根级 tags。
           // 根级 tags 必须一起合并并按 name 去重：swaggerJsonToYApiData.handleSwagger
           // 只在接口 tag 命中根 tags 时才赋予 catname，否则接口会被下游按分类过滤丢弃，
           // 表现为目录模式下只产出首个 JSON 对应的那一份模块文件。
@@ -83,18 +133,14 @@ export class SwaggerToYApiServer {
               ...accTags,
               ...docTags.filter((t: any) => t?.name && !seen.has(t.name)),
             ]
-            return {
-              ...acc,
-              paths: { ...acc.paths, ...doc.paths },
-              tags: mergedTags,
-              components: {
-                ...acc.components,
-                schemas: {
-                  ...acc.components?.schemas,
-                  ...doc.components?.schemas,
-                },
+            return mergeReferenceSections(
+              {
+                ...acc,
+                paths: { ...acc.paths, ...doc.paths },
+                tags: mergedTags,
               },
-            }
+              doc,
+            )
           }) as SwaggerType.Document
         } else {
           // 单文件模式
