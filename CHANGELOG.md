@@ -1,5 +1,11 @@
 # 更新日志
 
+## [5.0.3](https://github.com/kekexunxun/yapi-to-typescript/compare/v5.0.2...v5.0.3) (2026-10-14)
+
+### 修复
+
+- 修正schema寻找失败的问题 ([6405de2](https://github.com/kekexunxun/yapi-to-typescript/commit/6405de2ad97906e04af3f1af73f7d448b5829383))
+
 ## [5.0.2](https://github.com/kekexunxun/yapi-to-typescript/compare/v5.0.1...v5.0.2) (2026-10-12)
 
 ### 修复
